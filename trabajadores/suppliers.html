@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proveedores Cercanos | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+      #map { width: 100%; height: 500px; border-radius: 8px; margin-top: 20px; z-index: 1; }
+      .supplier-list { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+      .supplier-card { background: white; padding: 15px; border-radius: 8px; border-left: 5px solid #2ecc71; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+      .supplier-card:hover { transform: translateY(-3px); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="brand"><a href="../index.html">CHAMBITAS.COM</a></div>
+    <nav class="main-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="clients.html">Mis Clientes</a>
+        <a href="suppliers.html" class="active">Proveedores</a>
+        <a href="calendar.html">Calendario</a>
+        <a href="reviews.html">Reseñas</a>
+        <a href="../profile.html">Mi Perfil</a>
+        <button class="btn btn-sm" onclick="logout()">Cerrar Sesión</button>
+    </nav>
+  </div>
+</header>
+
+<main class="page container">
+  <h2>🛠️ Proveedores y Tiendas Cercanas</h2>
+  <p>Encuentra ferreterías, madererías y tiendas de materiales cerca de tu zona.</p>
+
+  <div id="map"></div>
+
+  <h3 style="margin-top: 30px;">Directorio Rápido</h3>
+  <div class="supplier-list" id="supplierList"></div>
+</main>
+
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth-guard.js"></script> 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. Inicializar Mapa (Centrado en CDMX por defecto)
+        const map = L.map('map').setView([19.4326, -99.1332], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 2. Datos Simulados de Tiendas
+        const tiendas = [
+            { nombre: "Ferretería El Tornillo", lat: 19.435, lon: -99.135, tipo: "Herramientas", dir: "Av. Juarez 10" },
+            { nombre: "Maderas del Norte", lat: 19.429, lon: -99.140, tipo: "Maderas", dir: "Calle Lopez 45" },
+            { nombre: "Pinturas Comex Centro", lat: 19.430, lon: -99.130, tipo: "Pintura", dir: "Eje Central 100" },
+            { nombre: "Materiales La Viga", lat: 19.420, lon: -99.120, tipo: "Construcción", dir: "Calzada la Viga 500" },
+            { nombre: "Tlapalería Don Pepe", lat: 19.440, lon: -99.145, tipo: "Varios", dir: "Ribera de San Cosme" }
+        ];
+
+        const listContainer = document.getElementById("supplierList");
+
+        // 3. Poner pines y lista
+        tiendas.forEach(t => {
+            L.marker([t.lat, t.lon]).addTo(map)
+                .bindPopup(`<b>${t.nombre}</b><br>${t.tipo}<br>${t.dir}`);
+
+            const card = document.createElement("div");
+            card.className = "supplier-card";
+            card.innerHTML = `
+                <h4>${t.nombre}</h4>
+                <span class="badge" style="background:#eee; color:#333">${t.tipo}</span>
+                <p style="font-size:0.9rem; margin-top:5px;">📍 ${t.dir}</p>
+            `;
+            card.addEventListener("click", () => {
+                map.setView([t.lat, t.lon], 16);
+                L.popup().setLatLng([t.lat, t.lon]).setContent(`<b>${t.nombre}</b>`).openOn(map);
+            });
+            listContainer.appendChild(card);
+        });
+    });
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/login.html";
+    }
+</script>
+
+<footer class="site-footer">
+    <div class="container"><h4>CHAMBITAS.COM</h4></div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23e37c2a' width='100' height='100'/><text x='50' y='60' font-family='Arial' font-size='60' text-anchor='middle' fill='white'>C</text></svg>">
+</head>
+<body>
+
+<header class="site-header">
+ <div class="container">
+    <div class="brand">
+      <a href="index.html">
+        <img src="assets/img/chambitas_masc.png" alt="Chambitas Mascota" class="logo-masc">
+      </a>
+      <a href="index.html">CHAMBITAS<span>.COM</span></a>
+    </div>
+
+    <nav class="main-nav" id="dynamicNav">
+       </nav>
+
+    <button class="menu-toggle" aria-label="Abrir menú">☰</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero container">
+    <span class="badge">Todo en un solo lugar</span>
+    <h1>Gestiona tu trabajo y tu cartera de clientes</h1>
+    <p class="lead">Gana visibilidad, agenda servicios y guarda evidencias de tu trabajo con facilidad.</p>
+    
+    <div class="hero-actions" id="guestActions">
+      <a class="btn btn-primary" href="register.html">Comenzar</a>
+      <a class="btn btn-muted" href="login.html">Ya tengo cuenta</a>
+    </div>
+    
+    <div class="hero-actions" id="userActions" style="display:none;">
+        <button class="btn btn-primary" onclick="irAlDashboard()">Ir a mi Dashboard</button>
+    </div>
+  </section>
+
+  <section class="container grid cols-3">
+    <article class="card">
+      <h3>Clientes organizados</h3>
+      <p>Visualiza y gestiona la información de tus clientes, contactos y domicilios.</p>
+    </article>
+    <article class="card">
+      <h3>Calendario</h3>
+      <p>Consulta fechas disponibles y confirma o reprograma citas.</p>
+    </article>
+    <article class="card">
+      <h3>Evidencias</h3>
+      <p>Sube fotos y notas de tus trabajos realizados para respaldar tu calidad.</p>
+    </article>
+  </section>
+
+  <section class="container" style="margin-top:28px;">
+    <div class="card">
+      <h3>Testimonios</h3>
+      <div class="grid cols-3">
+        <p>“Excelente servicio, súper puntuales.”</p>
+        <p>“La app me ayudó a llevar mis citas al día.”</p>
+        <p>“Pude encontrar clientes en mi colonia.”</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>CHAMBITAS.COM</h4>
+      <p>Todo en un solo lugar. Gestiona tu trabajo y cartera de clientes.</p>
+    </div>
+    <div>
+      <h5>Legal</h5>
+      <p class="legal">El uso de este sitio implica la aceptación del aviso legal.</p>
+    </div>
+    <div id="footerActions">
+      <h5>Acciones</h5>
+      <p><a class="btn btn-sm" href="register.html">Registrarse</a></p>
+      <p><a class="btn btn-sm btn-outline" href="login.html">Iniciar sesión</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("userRole");
+      const navContainer = document.getElementById("dynamicNav");
+      const guestActions = document.getElementById("guestActions");
+      const userActions = document.getElementById("userActions");
+      const footerActions = document.getElementById("footerActions");
+
+      let menuHTML = '';
+
+      if (!token) {
+          // --- VISTA DE INVITADO (NO LOGUEADO) ---
+          menuHTML = `
+              <a href="index.html" class="active">Inicio</a>
+              <a href="login.html" class="btn btn-sm btn-outline">Iniciar Sesión</a>
+          `;
+          // Mostrar botones de registro en el centro
+          if(guestActions) guestActions.style.display = "flex";
+          if(userActions) userActions.style.display = "none";
+          
+      } else {
+          // --- VISTA DE USUARIO LOGUEADO ---
+          
+          // Ocultar botones de registro del centro y footer
+          if(guestActions) guestActions.style.display = "none";
+          if(footerActions) footerActions.style.display = "none";
+          if(userActions) userActions.style.display = "flex"; // Mostrar botón "Ir a Dashboard"
+
+          // Construir menú según rol
+          if (role === 'trabajador') {
+              menuHTML = `
+                  <a href="trabajadores/dashboard.html">Dashboard</a>
+                  <a href="trabajadores/clients.html">Mis Clientes</a>
+                  <a href="trabajadores/suppliers.html">Proveedores</a>
+                  <a href="trabajadores/calendar.html">Calendario</a>
+                  <a href="trabajadores/reviews.html">Reseñas</a>
+                  <a href="profile.html">Mi Perfil</a>
+              `;
+          } else if (role === 'cliente') {
+              menuHTML = `
+                  <a href="clientes/dashboard.html">Dashboard</a>
+                  <a href="clientes/providers.html">Trabajadores</a>
+                  <a href="clientes/calendar.html">Calendario</a>
+                  <a href="profile.html">Mi Perfil</a>
+              `;
+          }
+
+          // Agregar botón de cerrar sesión
+          menuHTML += `<button class="btn btn-sm" onclick="forzarCierre()">Cerrar Sesión</button>`;
+      }
+
+      navContainer.innerHTML = menuHTML;
+  });
+
+  // Función para el botón grande del centro
+  function irAlDashboard() {
+      const role = localStorage.getItem("userRole");
+      if (role === 'trabajador') window.location.href = "trabajadores/dashboard.html";
+      else window.location.href = "clientes/dashboard.html";
+  }
+
+  // Función de logout segura
+  function forzarCierre() {
+      localStorage.clear();
+      window.location.href = window.location.origin + "/login.html";
+  }
+</script>
+
+</body>
+</html>

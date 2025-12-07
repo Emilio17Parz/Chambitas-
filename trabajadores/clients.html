@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mis Clientes | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    /* Estilos específicos para esta página dividida */
+    .clients-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Mitad y mitad */
+        gap: 20px;
+        height: calc(100vh - 180px); /* Ocupar el alto disponible */
+    }
+
+    /* Panel izquierdo (Lista) con scroll */
+    .clients-sidebar {
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    /* El Mapa */
+    #map {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        min-height: 400px;
+    }
+
+    /* Ajuste para móviles: que se ponga uno abajo del otro */
+    @media (max-width: 768px) {
+        .clients-layout { grid-template-columns: 1fr; height: auto; }
+        #map { height: 300px; margin-bottom: 20px; order: -1; /* Mapa primero en cel */ }
+    }
+
+    .client-item {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #e37c2a;
+        cursor: pointer;
+        transition: transform 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .client-item:hover { transform: translateX(5px); background: #fff8f0; }
+  </style>
+</head>
+
+<body>
+<header class="site-header">
+  <div class="container">
+    <div class="brand">
+      <a href="../index.html"><img src="../assets/img/chambitas_masc.png" class="logo-masc"></a>
+      <a href="../index.html">CHAMBITAS<span>.COM</span></a>
+    </div>
+    <nav class="main-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="clients.html" class="active">Mis Clientes</a>
+        <a href="suppliers.html">Proveedores</a>
+        <a href="calendar.html">Calendario</a>
+        <a href="reviews.html">Reseñas</a>
+        <a href="../profile.html">Mi Perfil</a>
+        <button class="btn btn-sm" id="logoutBtn">Cerrar Sesión</button>
+    </nav>
+    <button class="menu-toggle">☰</button>
+  </div>
+</header>
+
+<main class="page container">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h2>Mis Clientes</h2>
+      <button class="btn btn-primary" onclick="mostrarFormulario()">+ Nuevo Cliente</button>
+  </div>
+
+  <div class="clients-layout">
+      <div class="clients-sidebar">
+          
+<div id="formCliente" class="card" style="display:none; margin-bottom: 20px; border: 2px solid #e37c2a;">
+    <h3>Datos del Cliente</h3>
+    <div class="input"><label>Nombre</label><input id="nombre"></div>
+    <div class="input"><label>Teléfono</label><input id="telefono"></div>
+    
+    <div class="input">
+        <label>Dirección</label>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 5px;">
+            <input id="calle" placeholder="Calle">
+            <input id="numero" placeholder="Núm">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input id="colonia" placeholder="Colonia">
+            <input id="ciudad" placeholder="Ciudad" value="CDMX">
+        </div>
+    </div>
+    
+    <div class="input"><label>Notas</label><textarea id="notas"></textarea></div>
+    <div style="display:flex; gap:10px;">
+        <button class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
+        <button class="btn btn-muted" onclick="ocultarFormulario()">Cancelar</button>
+    </div>
+</div>
+
+          <div id="listaClientes">
+              <p>Cargando lista...</p>
+          </div>
+      </div>
+
+      <div>
+          <div id="map"></div>
+          <p style="font-size: 0.8rem; color: #666; margin-top: 5px; text-align: center;">
+              * Los marcadores se generan basados en la dirección escrita.
+          </p>
+      </div>
+  </div>
+
+</main>
+
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth-guard.js?v=999"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../assets/js/clients.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</body>
+</html>

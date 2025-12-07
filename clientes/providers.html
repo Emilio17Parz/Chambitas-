@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trabajadores | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <style>
+      /* Buscador */
+      .search-bar {
+          display: flex; gap: 10px; margin-bottom: 30px;
+          background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+      .search-bar input, .search-bar select {
+          padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1;
+      }
+
+      /* Grid de Trabajadores */
+      .workers-grid {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+      }
+      .worker-card {
+          background: white; border-radius: 8px; overflow: hidden;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;
+          display: flex; flex-direction: column;
+      }
+      .worker-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+      
+      .worker-header { background: #e37c2a; height: 60px; position: relative; }
+      .worker-avatar {
+          width: 70px; height: 70px; background: #fff; border-radius: 50%;
+          position: absolute; bottom: -35px; left: 20px; border: 3px solid white;
+          display: flex; align-items: center; justify-content: center; font-size: 30px;
+      }
+      .worker-body { padding: 45px 20px 20px; flex: 1; }
+      .worker-tag {
+          background: #eee; color: #555; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-bottom: 5px;
+      }
+
+      /* Modales */
+      .modal-overlay {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000;
+      }
+      .modal-content {
+          background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px;
+          max-height: 90vh; overflow-y: auto;
+      }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="brand">
+      <a href="../index.html"><img src="../assets/img/chambitas_masc.png" class="logo-masc"></a>
+      <a href="../index.html">CHAMBITAS<span>.COM</span></a>
+    </div>
+    <nav class="main-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="providers.html" class="active">Trabajadores</a>
+        <a href="calendar.html">Calendario</a>
+         <a href="reviews.html">Reseñas</a>
+        <a href="../profile.html">Mi Perfil</a>
+        <button class="btn btn-sm" onclick="forzarCierre()">Cerrar Sesión</button>
+    </nav>
+    <button class="menu-toggle">☰</button>
+  </div>
+</header>
+
+<main class="page container">
+  <h2>Encuentra al profesional ideal</h2>
+  
+  <div class="search-bar">
+      <input type="text" id="searchName" placeholder="Buscar por nombre...">
+      <select id="searchJob">
+          <option value="">Todos los oficios</option>
+          <option value="Plomeria">Plomería</option>
+          <option value="Electricidad">Electricidad</option>
+          <option value="Albañileria">Albañilería</option>
+          <option value="Limpieza">Limpieza</option>
+          <option value="Carpinteria">Carpintería</option>
+          <option value="Jardineria">Jardinería</option>
+          <option value="Pintura">Pintura</option>
+          <option value="Otros">Otros / Mantenimiento</option>
+      </select>
+      <button class="btn btn-primary" onclick="filtrarTrabajadores()">Buscar</button>
+  </div>
+
+  <div id="workersGrid" class="workers-grid">
+      <p>Cargando trabajadores...</p>
+  </div>
+</main>
+
+<div id="detailModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between;">
+            <h3 id="modalName">Nombre</h3>
+            <button onclick="cerrarModal('detailModal')" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✖</button>
+        </div>
+        <span id="modalJob" class="worker-tag">Oficio</span>
+        <hr style="margin: 15px 0; border:0; border-top:1px solid #eee;">
+        
+        <h4>Sobre mí</h4>
+        <p id="modalDesc" style="color:#555;">...</p>
+        
+        <h4 style="margin-top:15px;">📸 Trabajos Realizados</h4>
+        <div id="modalGallery" style="display:flex; gap:5px; overflow-x:auto; padding-bottom:5px;">
+            <p style="font-size:0.8rem; color:#999;">Cargando fotos...</p>
+        </div>
+        <h4 style="margin-top:15px;">💰 Tarifas aproximadas</h4>
+        <p id="modalRates" style="background:#f9f9f9; padding:10px; border-radius:4px;">No especificadas</p>
+
+        <div style="margin-top: 25px; text-align: center;">
+            <button class="btn btn-primary" id="btnOpenHire" style="width: 100%;">📅 Contratar Ahora</button>
+        </div>
+    </div>
+</div>
+<div id="bookingModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Agendar Cita</h3>
+        <p>Estás contratando a <strong id="bookingTargetName">...</strong></p>
+        <form id="bookingForm">
+            <input type="hidden" id="bookingWorkerId">
+            
+            <div class="input"><label>Fecha</label><input type="date" id="bookDate" required></div>
+            <div class="input"><label>Hora</label><input type="time" id="bookTime" required></div>
+           <div class="input">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label>Dirección del Servicio</label>
+                    <button type="button" onclick="usarDireccionRegistrada()" 
+                            style="background:none; border:none; color:#e37c2a; cursor:pointer; font-size:0.85rem; text-decoration:underline;">
+                        📍 Usar mi dirección registrada
+                    </button>
+                </div>
+                <input id="bookAddress" placeholder="Calle, Número, Colonia..." required>
+            </div>
+            <div class="input"><label>Descripción del Problema</label><textarea id="bookReason" rows="3" placeholder="Describe qué necesitas..." required></textarea></div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-muted" onclick="cerrarModal('bookingModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar Solicitud</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer class="site-footer"><div class="container"><p>CHAMBITAS.COM</p></div></footer>
+
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth-guard.js?v=999"></script>
+<script src="../assets/js/providers.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function forzarCierre() { localStorage.clear(); window.location.href = window.location.origin + "/login.html"; }
+</script>
+</body>
+</html>

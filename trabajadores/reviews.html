@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reseñas | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <style>
+      /* Estilos para estrellas */
+      .star-rating { color: #f1c40f; font-size: 1.2rem; }
+      
+      /* Tarjetas de pendientes */
+      .pending-card {
+          border-left: 5px solid #e37c2a;
+          background: #fff;
+          padding: 15px;
+          margin-bottom: 10px;
+          border-radius: 4px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+
+      /* Modal (Reutilizado del perfil) */
+      .modal-overlay {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+      }
+      .modal-content {
+          background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px;
+      }
+      .form-group { margin-bottom: 15px; }
+      .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+      .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="brand">
+      <a href="../index.html"><img src="../assets/img/chambitas_masc.png" class="logo-masc"></a>
+      <a href="../index.html">CHAMBITAS<span>.COM</span></a>
+    </div>
+    <nav class="main-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="clients.html">Mis Clientes</a>
+        <a href="calendar.html">Calendario</a>
+        <a href="reviews.html" class="active">Reseñas</a>
+        <a href="../profile.html">Mi Perfil</a>
+        <button class="btn btn-sm" id="logoutBtn">Cerrar Sesión</button>
+    </nav>
+    <button class="menu-toggle">☰</button>
+  </div>
+</header>
+
+<main class="page">
+<section class="container grid cols-2">
+  
+  <div>
+    <h2>⭐ Mi Reputación</h2>
+    <p>Lo que tus clientes opinan de tu trabajo.</p>
+    <div id="myReviewsList" style="margin-top: 20px;">
+        <p>Cargando reseñas...</p>
+    </div>
+  </div>
+
+  <div>
+    <h2>✍️ Calificar Clientes</h2>
+    <p>Citas completadas pendientes de tu reseña.</p>
+    <div id="pendingReviewsList" style="margin-top: 20px;">
+        <p>Buscando trabajos finalizados...</p>
+    </div>
+  </div>
+
+</section>
+</main>
+
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Calificar a <span id="modalTargetName">Cliente</span></h3>
+        <form id="reviewForm">
+            <input type="hidden" id="modalCitaId">
+            <input type="hidden" id="modalTargetId">
+
+            <div class="form-group">
+                <label>Calificación</label>
+                <select id="modalRating">
+                    <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
+                    <option value="4">⭐⭐⭐⭐ Muy bueno</option>
+                    <option value="3">⭐⭐⭐ Regular</option>
+                    <option value="2">⭐⭐ Malo</option>
+                    <option value="1">⭐ Pésimo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Comentario</label>
+                <textarea id="modalComment" rows="4" placeholder="¿Cómo fue tu experiencia con este cliente?" required></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-muted" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Publicar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div><h4>CHAMBITAS.COM</h4><p>Gestión de trabajo.</p></div>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/auth-guard.js?v=999"></script>
+<script src="../assets/js/auth-guard.js"></script>
+
+<script>
+const API_URL = "http://localhost:4000";
+
+document.addEventListener("DOMContentLoaded", () => {
+    cargarMisResenas();
+    cargarPendientes();
+});
+
+// 1. CARGAR RESEÑAS RECIBIDAS
+async function cargarMisResenas() {
+    const token = localStorage.getItem("token"); 
+    const container = document.getElementById("myReviewsList");
+    
+    if (!token) return; 
+
+    try {
+        const res = await fetch(`${API_URL}/api/resenas/mis-resenas`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const reviews = await res.json();
+        
+        container.innerHTML = "";
+        if(reviews.length === 0) {
+            container.innerHTML = "<p>Aún no tienes reseñas recibidas.</p>";
+            return;
+        }
+
+        reviews.forEach(r => {
+            const stars = "⭐".repeat(r.calificacion);
+            const card = document.createElement("div");
+            card.className = "card";
+            card.style.marginBottom = "10px";
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${r.nombre} ${r.apellidos || ''}</strong>
+                    <span class="star-rating">${stars}</span>
+                </div>
+                <p style="font-style: italic; color: #555; margin-top: 5px;">"${r.comentario}"</p>
+                <small style="color: #999;">${new Date(r.fecha).toLocaleDateString()}</small>
+            `;
+            container.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = "<p>Error al cargar reputación.</p>";
+    }
+}
+
+// 2. CARGAR PENDIENTES POR CALIFICAR
+async function cargarPendientes() {
+    const token = localStorage.getItem("token");
+    const container = document.getElementById("pendingReviewsList");
+
+    try {
+        const res = await fetch(`${API_URL}/api/resenas/pendientes`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const pendientes = await res.json();
+        
+        container.innerHTML = "";
+        if(pendientes.length === 0) {
+            container.innerHTML = "<p>¡Estás al día! No tienes calificaciones pendientes.</p>";
+            return;
+        }
+
+        pendientes.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "pending-card";
+            card.innerHTML = `
+                <h4>${p.nombre} ${p.apellidos || ''}</h4>
+                <p style="font-size: 0.9rem; margin-bottom: 5px;">📅 ${new Date(p.fecha).toLocaleDateString()}</p>
+                <p style="font-size: 0.9rem;">🛠️ ${p.motivo}</p>
+                <button class="btn btn-sm btn-primary" style="margin-top:10px; width:100%;" 
+                    onclick="abrirModal(${p.cita_id}, ${p.otro_usuario_id}, '${p.nombre}')">
+                    Calificar Cliente
+                </button>
+            `;
+            container.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = "<p>Error al cargar pendientes.</p>";
+    }
+}
+
+// 3. MANEJO DEL MODAL
+function abrirModal(citaId, targetId, targetName) {
+    document.getElementById("modalCitaId").value = citaId;
+    document.getElementById("modalTargetId").value = targetId;
+    document.getElementById("modalTargetName").textContent = targetName;
+    document.getElementById("reviewModal").style.display = "flex";
+}
+
+function cerrarModal() {
+    document.getElementById("reviewModal").style.display = "none";
+}
+
+// 4. ENVIAR RESEÑA (CON SWEETALERT)
+document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    
+    const data = {
+        cita_id: document.getElementById("modalCitaId").value,
+        destinatario_id: document.getElementById("modalTargetId").value,
+        calificacion: document.getElementById("modalRating").value,
+        comentario: document.getElementById("modalComment").value
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/api/resenas/crear`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token 
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            // ALERTA BONITA AQUÍ
+            Swal.fire({
+                title: '¡Reseña enviada!',
+                text: 'Gracias por calificar a tu cliente.',
+                icon: 'success',
+                confirmButtonColor: '#e37c2a'
+            });
+            
+            cerrarModal();
+            cargarPendientes(); 
+        } else {
+            Swal.fire('Error', 'No se pudo enviar la reseña.', 'error');
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'Fallo de conexión.', 'error');
+    }
+});
+</script>
+
+</body>
+</html>

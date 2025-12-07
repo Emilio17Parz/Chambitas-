@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Trabajador | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23e37c2a' width='100' height='100'/><text x='50' y='60' font-family='Arial' font-size='60' text-anchor='middle' fill='white'>C</text></svg>">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="brand">
+      <a href="../index.html">
+        <img src="../assets/img/chambitas_masc.png" alt="Chambitas Mascota" class="logo-masc">
+      </a>
+      <a href="../index.html">CHAMBITAS<span>.COM</span></a>
+    </div>
+
+    <nav class="main-nav">
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="clients.html">Mis Clientes</a>
+        
+        <a href="suppliers.html">Proveedores</a>
+        <a href="calendar.html">Calendario</a>
+        <a href="reviews.html">Reseñas</a>
+        <a href="../profile.html">Mi Perfil</a>
+<button class="btn btn-sm" onclick="forzarCierre()">Cerrar Sesión</button>
+    </nav>
+
+    <button class="menu-toggle" aria-label="Abrir menú">☰</button>
+  </div>
+</header>
+
+<section class="welcome-section">
+  <div class="welcome-banner">
+    <h2>Bienvenido, <span id="userName">Cargando...</span></h2>
+    <p><strong>Correo:</strong> <span id="userEmail">Cargando...</span></p>
+    <p><strong>Rol:</strong> <span id="userRole">Cargando...</span></p>
+    <p><strong>Oficio:</strong> <span id="userDate">Cargando...</span></p>
+  </div>
+</section>
+
+<main class="page">
+<section class="container">
+  
+  <div class="grid cols-3">
+    <div class="card kpi"><div class="num" id="kpiCitas">0</div><div>Citas próximas</div></div>
+    <div class="card kpi"><div class="num" id="kpiClientes">0</div><div>Clientes activos</div></div>
+    <div class="card kpi"><div class="num">5.0★</div><div>Calificación</div></div>
+  </div>
+
+  <h2 style="margin-top:24px; margin-bottom: 15px;">Mis Citas Programadas</h2>
+  
+  <div class="cards-appointments" id="listaCitas">
+      <p>Cargando citas...</p>
+  </div>
+
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>CHAMBITAS.COM</h4>
+      <p>Gestión de trabajo para profesionales.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth-guard.js?v=999"></script> <script src="../assets/js/dashboard.js"></script>
+
+<script>
+  function forzarCierre() {
+    console.log("Forzando cierre de sesión...");
+    localStorage.clear();
+    
+    // Esto obliga al navegador a ir a la raíz del servidor + login.html
+    // Ejemplo: http://localhost:5500/login.html
+    window.location.href = window.location.origin + "/login.html";
+  }
+</script>
+<script src="../assets/js/dashboard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

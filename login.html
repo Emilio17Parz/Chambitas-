@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar Sesión | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <style>
+    /* Estilos para los mensajes de error/éxito */
+    .mensaje-estado {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      text-align: center;
+      display: none; 
+    }
+    .mensaje-error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+    }
+    .mensaje-exito {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+ <div class="container">
+    <div class="brand">
+      <a href="index.html">
+        <img src="assets/img/chambitas_masc.png" alt="Chambitas Mascota" class="logo-masc">
+      </a>
+      <a href="index.html">CHAMBITAS<span>.COM</span></a>
+    </div>
+    <nav class="main-nav">
+      <a href="index.html" class="active">Inicio</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <section class="container form">
+    <h2>Inicia Sesión</h2>
+
+    <form id="loginForm" autocomplete="off">
+      <div class="input">
+        <label for="correo">Correo</label>
+        <input id="correo" type="email" name="correo" placeholder="tu@correo.com" required>
+      </div>
+
+      <div class="input">
+        <label for="contraseña">Contraseña</label>
+        <input id="contraseña" type="password" name="contraseña" placeholder="•••••••" required>
+      </div>
+
+      <div id="mensajeFeedback" class="mensaje-estado"></div>
+
+      <div class="input" style="display:flex; align-items:center; gap:12px; margin-top:15px;">
+        <button type="submit" class="btn btn-primary">Entrar</button>
+        <a class="btn" href="register.html">Registrarme</a>
+      </div>
+    </form>
+
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// URL del Backend (Puerto 4000)
+const API_URL = "http://localhost:4000";
+
+function mostrarMensaje(msg, tipo) {
+    const div = document.getElementById("mensajeFeedback");
+    div.textContent = msg;
+    div.style.display = "block";
+    div.className = "mensaje-estado " + (tipo === "error" ? "mensaje-error" : "mensaje-exito");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
+  
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const correoInput = document.getElementById("correo");
+    const passInput = document.getElementById("contraseña");
+
+    // CORRECCIÓN: Quitamos las referencias a "tipoUsuario" porque ya no existe en el HTML
+    if (!correoInput || !passInput) {
+        mostrarMensaje("Error interno: No se encuentran los campos.", "error");
+        return;
+    }
+
+    const correo = correoInput.value;
+    const contraseña = passInput.value;
+
+    // Limpiar mensaje previo
+    mostrarMensaje("Conectando...", "exito");
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({ 
+            correo: correo, 
+            contraseña: contraseña 
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        mostrarMensaje(data.error || data.message || "Credenciales incorrectas", "error");
+        return;
+      }
+
+      // Login Exitoso
+      mostrarMensaje("¡Bienvenido! Redirigiendo...", "exito");
+      
+      // Guardamos los datos que nos devuelve el servidor
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.nombre || "");
+      localStorage.setItem("isLoggedIn", "true");
+      
+      // CORRECCIÓN: El rol viene DIRECTAMENTE de la base de datos
+      const rolReal = data.tipo; 
+      localStorage.setItem("userRole", rolReal);
+
+      // Redireccionar según el rol que trajo la base de datos
+      setTimeout(() => {
+          if (rolReal === "trabajador") {
+            window.location.href = "trabajadores/dashboard.html";
+          } else {
+            // Asumimos que si no es trabajador, es cliente (o admin)
+            window.location.href = "clientes/dashboard.html";
+          }
+      }, 1000);
+
+    } catch (err) {
+      console.error("Error de conexión:", err);
+      mostrarMensaje("No se pudo conectar al servidor (Puerto 4000).", "error");
+    }
+  });
+});
+</script>
+</body>
+</html>

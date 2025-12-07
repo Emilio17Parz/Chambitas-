@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mi Perfil | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+      .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+      .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+      .form-group { margin-bottom: 15px; }
+      .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+      .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+      .section-box { background: #f9f9f9; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #e37c2a; }
+  </style>
+</head>
+
+<body>
+<header class="site-header">
+  <div class="container">
+    <div class="brand"><a href="index.html">CHAMBITAS.COM</a></div>
+    <nav class="main-nav" id="dynamicNav"></nav>
+    <button class="menu-toggle">☰</button>
+  </div>
+</header>
+
+<main class="page">
+  <section class="container">
+    <h2 style="margin-bottom: 20px;">Mi Perfil</h2>
+
+    <div class="card profile-card" style="max-width: 800px; margin: 0 auto;">
+      <div style="text-align: center;">
+          <div style="width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+          <h3 id="profileName">Cargando...</h3>
+          <span id="profileRoleBadge" class="estado" style="background: #e37c2a; color: white; padding: 2px 8px; border-radius: 10px;">---</span>
+      </div>
+      <hr style="margin: 20px 0; border:0; border-top:1px solid #eee;">
+
+      <div class="grid cols-1" style="gap: 15px;">
+          <p><strong>📧 Correo:</strong> <span id="profileEmail">---</span></p>
+          <p><strong id="labelExtra">📍 Datos extra:</strong> <span id="profileExtra">---</span></p>
+      </div>
+
+      <div id="workerSection" style="display: none;">
+          <div class="section-box">
+              <h4>📝 Descripción</h4>
+              <p id="profileDesc" style="color: #555;">Sin descripción.</p>
+          </div>
+          <div class="section-box">
+              <h4>💰 Mis Tarifas</h4>
+              <p id="profileRates" style="color: #555; font-weight: bold;">No especificadas.</p>
+          </div>
+          
+          <div style="margin-top: 30px;">
+              <hr style="border:0; border-top:1px solid #eee;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h3>📸 Mis Trabajos (Evidencias)</h3>
+                  <button class="btn btn-sm" onclick="abrirModalFoto()">+ Subir Foto</button>
+              </div>
+              <div id="galleryGrid" class="grid cols-3" style="gap: 10px; margin-top: 15px;">
+                  <p>Cargando fotos...</p>
+              </div>
+          </div>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center;">
+          <button class="btn btn-primary" onclick="abrirModal()">Editar Perfil</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Editar Perfil</h3>
+        <form id="editForm">
+            <div class="grid cols-2">
+                <div class="form-group"><label>Nombre</label><input id="editNombre" required></div>
+                <div class="form-group"><label>Apellidos</label><input id="editApellidos" required></div>
+            </div>
+            <div class="form-group"><label>Domicilio</label><input id="editDomicilio"></div>
+            
+            <div class="form-group" id="divEditOficio"><label>Oficio</label><input id="editOficio"></div>
+
+            <div id="workerInputs" style="display:none;">
+                <div class="form-group">
+                    <label>Descripción corta</label>
+                    <input id="editDesc" placeholder="Ej: Experto en instalaciones...">
+                </div>
+                <div class="form-group">
+                    <label>💰 Mis Tarifas</label>
+                    <input id="editRates" placeholder="Ej: $200 visita">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap:10px;">
+                <button type="button" class="btn btn-muted" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="photoModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Subir Evidencia</h3>
+        <form id="photoForm">
+            <div class="form-group">
+                <label>Seleccionar Foto</label>
+                <input type="file" id="evidenciaFile" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="evidenciaDesc" placeholder="Ej: Reparación terminada">
+            </div>
+            <div style="display:flex; justify-content: flex-end; gap:10px; margin-top:15px;">
+                <button type="button" class="btn btn-muted" onclick="document.getElementById('photoModal').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Subir</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="assets/js/app.js"></script>
+<script>
+    const API_URL = "http://localhost:4000";
+    let currentUserData = {};
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("userRole");
+        const navContainer = document.getElementById("dynamicNav");
+        
+        // Menú dinámico
+        let menuHTML = '';
+        if (role === 'trabajador') {
+            menuHTML = `<a href="trabajadores/dashboard.html">Dashboard</a><a href="trabajadores/clients.html">Mis Clientes</a><a href="trabajadores/suppliers.html">Proveedores</a><a href="trabajadores/calendar.html">Calendario</a><a href="profile.html" class="active">Mi Perfil</a>`;
+        } else {
+            menuHTML = `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a><a href="profile.html" class="active">Mi Perfil</a>`;
+        }
+        menuHTML += `<button class="btn btn-sm" onclick="logout()" style="margin-left: 10px;">Cerrar Sesión</button>`;
+        navContainer.innerHTML = menuHTML;
+
+        if (!token) { window.location.href = "login.html"; return; }
+
+        try {
+            const res = await fetch(`${API_URL}/api/users/profile`, { headers: { "Authorization": "Bearer " + token } });
+            if (res.ok) {
+                const user = await res.json();
+                currentUserData = user;
+
+                document.getElementById("profileName").textContent = `${user.nombre} ${user.apellidos || ''}`;
+                document.getElementById("profileEmail").textContent = user.correo;
+                document.getElementById("profileRoleBadge").textContent = user.tipo_usuario.toUpperCase();
+                
+                const labelExtra = document.getElementById("labelExtra");
+                const valExtra = document.getElementById("profileExtra");
+
+                if (user.tipo_usuario === 'trabajador') {
+                    labelExtra.textContent = "🛠️ Oficio:";
+                    valExtra.textContent = user.oficio || "No especificado";
+                    
+                    document.getElementById("workerSection").style.display = "block";
+                    document.getElementById("profileDesc").textContent = user.descripcion || "Sin descripción.";
+                    document.getElementById("profileRates").textContent = user.tarifas || "Preguntar.";
+                    
+                    cargarGaleria(user.id); // Cargar fotos
+                } else {
+                    labelExtra.textContent = "🏠 Domicilio:";
+                    valExtra.textContent = user.domicilio || "No especificado";
+                }
+            }
+        } catch (error) { console.error(error); }
+
+        // Eventos
+        document.getElementById("editForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await guardarPerfil();
+        });
+        
+        document.getElementById("photoForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await subirFoto();
+        });
+    });
+
+    function logout() { localStorage.clear(); window.location.href = "login.html"; }
+    function abrirModal() {
+        const user = currentUserData;
+        document.getElementById("editModal").style.display = "flex";
+        document.getElementById("editNombre").value = user.nombre;
+        document.getElementById("editApellidos").value = user.apellidos || "";
+        document.getElementById("editDomicilio").value = user.domicilio || "";
+        
+        if (user.tipo_usuario === 'trabajador') {
+            document.getElementById("divEditOficio").style.display = "block";
+            document.getElementById("workerInputs").style.display = "block";
+            document.getElementById("editOficio").value = user.oficio || "";
+            document.getElementById("editDesc").value = user.descripcion || "";
+            document.getElementById("editRates").value = user.tarifas || "";
+        } else {
+            document.getElementById("divEditOficio").style.display = "none";
+            document.getElementById("workerInputs").style.display = "none";
+        }
+    }
+    function cerrarModal() { document.getElementById("editModal").style.display = "none"; }
+    function abrirModalFoto() { document.getElementById("photoModal").style.display = "flex"; }
+
+    async function guardarPerfil() {
+        const token = localStorage.getItem("token");
+        const data = {
+            nombre: document.getElementById("editNombre").value,
+            apellidos: document.getElementById("editApellidos").value,
+            domicilio: document.getElementById("editDomicilio").value,
+            oficio: document.getElementById("editOficio").value,
+            descripcion: document.getElementById("editDesc").value,
+            tarifas: document.getElementById("editRates").value
+        };
+        try {
+            const res = await fetch(`${API_URL}/api/users/profile`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                Swal.fire("Éxito", "Perfil actualizado", "success").then(() => window.location.reload());
+            } else Swal.fire("Error", "No se pudo guardar", "error");
+        } catch (e) { Swal.fire("Error", "Fallo de red", "error"); }
+    }
+
+    async function subirFoto() {
+        const token = localStorage.getItem("token");
+        const fileInput = document.getElementById("evidenciaFile");
+        const descInput = document.getElementById("evidenciaDesc");
+        const formData = new FormData();
+        formData.append("foto", fileInput.files[0]);
+        formData.append("descripcion", descInput.value);
+
+        try {
+            Swal.fire({ title: 'Subiendo...', didOpen: () => Swal.showLoading() });
+            const res = await fetch(`${API_URL}/api/users/evidencia`, {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + token },
+                body: formData
+            });
+            if (res.ok) {
+                Swal.fire("Éxito", "Foto subida", "success");
+                document.getElementById("photoModal").style.display = "none";
+                cargarGaleria(currentUserData.id);
+            } else Swal.fire("Error", "No se pudo subir", "error");
+        } catch (e) { Swal.fire("Error", "Fallo de conexión", "error"); }
+    }
+
+    async function cargarGaleria(userId) {
+        try {
+            const res = await fetch(`${API_URL}/api/users/evidencia/${userId}`);
+            const fotos = await res.json();
+            const grid = document.getElementById("galleryGrid");
+            grid.innerHTML = "";
+            if (fotos.length === 0) {
+                grid.innerHTML = "<p>No hay fotos aún.</p>";
+                return;
+            }
+            fotos.forEach(f => {
+                grid.innerHTML += `
+                    <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                        <img src="${API_URL}/uploads/trabajos/${f.ruta_foto}" style="width:100%; height:150px; object-fit:cover;">
+                        <p style="padding:5px; font-size:0.8rem; margin:0;">${f.descripcion || 'Sin descripción'}</p>
+                    </div>
+                `;
+            });
+        } catch (e) { console.error(e); }
+    }
+</script>
+</body>
+</html>

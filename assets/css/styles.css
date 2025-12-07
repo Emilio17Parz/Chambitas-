@@ -1,0 +1,339 @@
+:root {
+  --brand-start: #1f5478;
+  --brand-end: #143d59;
+  --bg: #f4f7fa;
+  --text: #1b1b1b;
+  --muted: #5c6b73;
+  --card: #ffffff;
+  --accent: #b3d8ff;
+  --shadow: 0 4px 14px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,.1);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+/* === LAYOUT GENERAL === */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+.page { padding: 28px 0 60px; }
+
+img { max-width: 100%; height: auto; }
+
+/* === HEADER & NAVEGACIÓN === */
+.site-header {
+  background: linear-gradient(to bottom, var(--brand-start), var(--brand-end));
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100; /* Z-index alto para que no lo tapen elementos normales */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  position: relative;
+}
+
+/* Logo con efecto 3D Sobresaliente */
+.logo-masc {
+  height: 65px; /* Un poco más controlado para móviles */
+  position: relative;
+  top: 5px; 
+  margin-right: 10px;
+  transition: transform 0.25s ease, filter 0.25s ease;
+  z-index: 20;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+}
+.logo-masc:hover {
+  transform: translateY(-3px) scale(1.05);
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,0.4));
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 21; /* Encima del menú móvil */
+}
+
+.brand a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+  letter-spacing: .5px;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+}
+.brand span { opacity: .9; font-weight: 400; margin-left: 2px; }
+
+/* Menú de Escritorio */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.main-nav a {
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-size: 0.95rem;
+}
+
+.main-nav a:hover, .main-nav a.active {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+
+.main-nav .btn { 
+  border: 1px solid rgba(255,255,255,.4); 
+  padding: 6px 12px;
+}
+
+.menu-toggle { 
+  display: none; 
+  background: none; 
+  border: none; 
+  color: #fff; 
+  font-size: 1.8rem; 
+  cursor: pointer;
+  padding: 5px;
+}
+
+/* === RESPONSIVE MENU (Móvil) === */
+@media (max-width: 960px) {
+  .logo-masc { height: 50px; top: 0; } /* Logo normal en móvil */
+  
+  .menu-toggle { display: block; }
+  
+  .main-nav {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--brand-end);
+    flex-direction: column;
+    padding: 20px;
+    gap: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Clase que agrega JS para mostrar el menú */
+  .site-header.open .main-nav { display: flex; }
+  
+  .main-nav a { 
+    display: block; 
+    width: 100%; 
+    text-align: center; 
+    padding: 12px;
+  }
+  
+  #logoutBtn { margin-left: 0; width: 100%; margin-top: 10px; }
+}
+
+/* === COMPONENTES UI === */
+
+/* Botones */
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.1s;
+  text-align: center;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--brand-start); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--brand-start); color: var(--brand-start); }
+.btn-muted { background: #e6f1fa; color: #333; }
+.btn-danger { background: #fee2e2; color: #991b1b; }
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+
+/* Tarjetas y Grids */
+.grid { display: grid; gap: 20px; }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* Grid Responsivo Automático (Mejor que media queries fijas) */
+.providers-grid, .calendar-grid, .cards-appointments {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .grid.cols-3, .grid.cols-2 { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  transition: transform 0.2s;
+}
+.card h3 { margin-top: 0; color: var(--brand-end); }
+
+/* Inputs y Formularios */
+.form {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  padding: 30px;
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+.input { display: block; margin-bottom: 16px; }
+.input label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: var(--brand-start); }
+.input input, .input select, .input textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d9e6;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+.input input:focus { border-color: var(--brand-start); outline: none; }
+
+/* Tabs */
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; overflow-x: auto; }
+.tab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tab.active { background: var(--brand-start); color: white; }
+
+/* === SECCIONES ESPECÍFICAS === */
+
+/* Hero / Bienvenida */
+.welcome-section {
+  background: #f0f4f8;
+  padding: 30px 0;
+  border-bottom: 1px solid #dae1e7;
+  margin-bottom: 30px;
+}
+.welcome-banner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.welcome-banner h2 { margin: 0 0 5px; color: var(--brand-end); font-size: 1.8rem; }
+.welcome-banner p { margin: 4px 0; color: #555; }
+
+/* KPIs */
+.kpi { display: flex; align-items: center; gap: 15px; }
+.kpi .num { font-size: 2rem; font-weight: 800; color: var(--brand-start); line-height: 1; }
+
+/* Tarjetas de Trabajadores / Proveedores */
+.worker-card, .provider-card {
+  background: white; border-radius: 12px; overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid #eee;
+  display: flex; flex-direction: column;
+}
+.worker-header { background: var(--brand-start); height: 60px; position: relative; margin-bottom: 30px; }
+.worker-avatar {
+  width: 60px; height: 60px; background: #fff; border-radius: 50%;
+  position: absolute; bottom: -30px; left: 20px;
+  border: 3px solid white;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.worker-body { padding: 0 20px 20px; flex: 1; display: flex; flex-direction: column; }
+.worker-tag {
+  background: #eef2ff; color: var(--brand-start); 
+  padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; 
+  align-self: flex-start; margin-bottom: 8px;
+}
+
+/* Estados de Citas */
+.estado { padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.estado.pendiente { background: #fff3cd; color: #856404; }
+.estado.aceptada { background: #d1e7dd; color: #0f5132; }
+.estado.rechazada { background: #f8d7da; color: #842029; }
+.estado.completada { background: #cff4fc; color: #055160; }
+.estado.cancelada { background: #e2e3e5; color: #41464b; }
+
+/* === MODALES Y Z-INDEX (CORRECCIÓN CRÍTICA) === */
+
+/* El fondo oscuro del modal debe estar muy arriba */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Un poco más oscuro para mejor contraste */
+  display: none; /* JS lo cambia a flex */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999 !important; /* MÁXIMA PRIORIDAD */
+  padding: 20px;
+  backdrop-filter: blur(2px); /* Efecto moderno */
+}
+
+/* El contenido del modal */
+.modal-content, .modal {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 10000 !important; /* Encima del overlay */
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Asegurar que SweetAlert esté AÚN MÁS arriba */
+.swal2-container {
+  z-index: 20000 !important;
+}
+
+/* === FOOTER === */
+.site-footer {
+  background: #fff;
+  border-top: 1px solid #eaeaea;
+  margin-top: auto; /* Push to bottom */
+  padding: 40px 0;
+}
+.site-footer .container { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.site-footer h4 { color: var(--brand-end); margin-bottom: 10px; }
+.site-footer a { color: var(--muted); text-decoration: none; }
+.site-footer a:hover { color: var(--brand-start); }
+
+/* === MENSAJES === */
+.mensaje-estado {
+  padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: 600; text-align: center;
+}
+.mensaje-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.mensaje-exito { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
