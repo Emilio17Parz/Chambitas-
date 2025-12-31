@@ -1,111 +1,119 @@
 import express from "express";
 import { db } from "../config/db.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import multer from "multer";
+import path from "path";
+import fs from 'fs';
 
 const router = express.Router();
 
-// 1. OBTENER CITAS (Inteligente: Detecta Rol)
-router.get("/", verifyToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const userRole = req.user.tipo; // El token ya trae el tipo ('cliente' o 'trabajador')
+// --- CONFIGURACIÓN MULTER (FOTOS) ---
+const uploadDir = 'uploads/citas/';
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-    let sql = "";
-    
-    if (userRole === 'trabajador') {
-        // Si soy Trabajador, quiero ver el nombre del Cliente
-        sql = `SELECT c.*, u.nombre AS otro_nombre, u.apellidos AS otro_apellidos, 'cliente' as rol_otro
-               FROM citas c
-               JOIN usuarios u ON u.id = c.cliente_id
-               WHERE c.trabajador_id = ?
-               ORDER BY c.fecha ASC, c.hora ASC`;
-    } else {
-        // Si soy Cliente, quiero ver el nombre del Trabajador
-        sql = `SELECT c.*, u.nombre AS otro_nombre, u.apellidos AS otro_apellidos, 'trabajador' as rol_otro
-               FROM citas c
-               JOIN usuarios u ON u.id = c.trabajador_id
-               WHERE c.cliente_id = ?
-               ORDER BY c.fecha ASC, c.hora ASC`;
-    }
-
-    const [rows] = await db.query(sql, [userId]);
-    res.json(rows);
-
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Error al obtener citas" });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => { cb(null, uploadDir); },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
+const upload = multer({ storage: storage });
 
-// 2. CREAR CITA (Con validación de NO EMPALME)
-router.post("/crear", verifyToken, async (req, res) => {
-  try {
-    const cliente_id = req.user.id; // El que solicita es el usuario logueado (Cliente)
-    const { trabajador_id, fecha, hora, motivo, direccion_servicio } = req.body;
+// 1. CREAR CITA
+router.post("/crear", verifyToken, upload.single("foto_problema"), async (req, res) => {
+    try {
+        const { trabajador_id, fecha, hora, direccion_servicio, motivo } = req.body;
+        const cliente_id = req.user.id;
+        
+        let foto = null;
+        if (req.file) foto = req.file.filename;
 
-    // --- VALIDACIÓN ANTI-EMPALME ---
-    // Buscamos si ya existe una cita para ese trabajador, en esa fecha y hora
-    // que NO esté rechazada ni cancelada.
-    const [existente] = await db.query(
-        `SELECT id FROM citas 
-         WHERE trabajador_id = ? 
-         AND fecha = ? 
-         AND hora = ? 
-         AND estado NOT IN ('rechazada', 'cancelada')`,
-        [trabajador_id, fecha, hora]
-    );
-
-    if (existente.length > 0) {
-        return res.status(400).json({ error: "Horario no disponible. Ya existe una cita agendada." });
+        const sql = `INSERT INTO citas (cliente_id, trabajador_id, fecha, hora, direccion_servicio, motivo, foto_problema, estado) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDIENTE')`;
+        
+        await db.query(sql, [cliente_id, trabajador_id, fecha, hora, direccion_servicio, motivo, foto]);
+        res.json({ message: "Solicitud enviada" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al crear cita" });
     }
-    // -------------------------------
-
-    await db.query(
-      `INSERT INTO citas (cliente_id, trabajador_id, fecha, hora, estado, motivo, direccion_servicio)
-       VALUES (?, ?, ?, ?, 'pendiente', ?, ?)`,
-      [cliente_id, trabajador_id, fecha, hora, motivo, direccion_servicio]
-    );
-
-    res.json({ message: "Cita solicitada correctamente" });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al solicitar cita" });
-  }
 });
 
-// 3. ACTUALIZAR ESTADO (Aceptar, Rechazar, Completar)
+// 2. OBTENER MIS CITAS (CON CONTEO DE MENSAJES SIN LEER)
+router.get("/mis-citas", verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // Obtenemos el rol asegurando compatibilidad
+        const role = req.user.tipo_usuario || req.user.tipo; 
+        
+        let sql = "";
+        
+        // La subconsulta (SELECT COUNT...) cuenta los mensajes de esa cita 
+        // que NO fui yo quien envió (usuario_id != userId) y que no están leídos (leido = 0).
+        const subQueryMensajes = `(SELECT COUNT(*) FROM mensajes m WHERE m.cita_id = c.id AND m.usuario_id != ? AND m.leido = 0)`;
+
+        if (role === 'cliente') {
+            sql = `
+                SELECT c.*, 
+                       u.nombre AS otro_nombre, 
+                       u.apellidos AS otro_apellidos, 
+                       u.telefono, u.oficio,
+                       ${subQueryMensajes} AS sin_leer
+                FROM citas c 
+                LEFT JOIN usuarios u ON c.trabajador_id = u.id 
+                WHERE c.cliente_id = ? 
+                ORDER BY c.fecha DESC, c.hora DESC
+            `;
+        } else {
+            sql = `
+                SELECT c.*, 
+                       u.nombre AS otro_nombre, 
+                       u.apellidos AS otro_apellidos, 
+                       u.telefono, u.domicilio,
+                       ${subQueryMensajes} AS sin_leer
+                FROM citas c 
+                LEFT JOIN usuarios u ON c.cliente_id = u.id 
+                WHERE c.trabajador_id = ? 
+                ORDER BY c.fecha DESC, c.hora DESC
+            `;
+        }
+        
+        // Pasamos userId dos veces: una para el COUNT y otra para el WHERE principal
+        const [rows] = await db.query(sql, [userId, userId]);
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al obtener citas" });
+    }
+});
+
+// 3. OBTENER DETALLE DE UNA CITA (Para el Modal)
+router.get("/:id", verifyToken, async (req, res) => {
+    try {
+        const citaId = req.params.id;
+        // Traemos también nombres para el modal si fuera necesario
+        const sql = `SELECT * FROM citas WHERE id = ?`;
+        const [rows] = await db.query(sql, [citaId]);
+        
+        if (rows.length === 0) return res.status(404).json({ error: "No encontrada" });
+        res.json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: "Error de servidor" });
+    }
+});
+
+// 4. CAMBIAR ESTADO
 router.put("/estado/:id", verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { estado } = req.body;
-
-    const validStates = ["pendiente", "aceptada", "rechazada", "cancelada", "completada"];
-
-    if (!validStates.includes(estado)) {
-      return res.status(400).json({ error: "Estado no válido" });
+    try {
+        const { estado } = req.body;
+        await db.query("UPDATE citas SET estado = ? WHERE id = ?", [estado, req.params.id]);
+        res.json({ message: "Estado actualizado" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al actualizar" });
     }
-
-    await db.query("UPDATE citas SET estado=? WHERE id=?", [estado, id]);
-
-    res.json({ message: "Estado actualizado correctamente" });
-
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Error al actualizar estado" });
-  }
-});
-
-// 4. ELIMINAR CITA
-router.delete("/:id", verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await db.query("DELETE FROM citas WHERE id=?", [id]);
-    res.json({ message: "Cita eliminada" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al eliminar cita" });
-  }
 });
 
 export default router;

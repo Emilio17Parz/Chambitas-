@@ -11,7 +11,7 @@ import userRoutes from "./routes/users.js"; // <--- NUEVO IMPORT
 import citasRoutes from "./routes/citas.js";
 import resenasRoutes from "./routes/resenas.js";
 import clientesRoutes from "./routes/clientes.js";
-
+import chatRoutes from "./routes/chat.js";
 
 dotenv.config();
 
@@ -21,10 +21,10 @@ const PORT = process.env.PORT || 4000;
 // CONFIGURACIÓN DE CARPETAS
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+app.use(express.json());
 // MIDDLEWARES
 app.use(cors());
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -40,7 +40,7 @@ app.use("/api/users", userRoutes); // <--- HABILITA EL PERFIL
 app.use("/api/citas", citasRoutes);
 app.use("/api/resenas", resenasRoutes);
 app.use("/api/clientes", clientesRoutes);
-
+app.use("/api/chat", chatRoutes);
 // app.use("/api/citas", citasRoutes); // (Descomentar cuando tengas el archivo de citas)
 
 // RUTA BASE

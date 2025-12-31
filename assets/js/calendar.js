@@ -17,7 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
         grid.innerHTML = "<p>Cargando agenda...</p>";
 
         try {
-            const res = await fetch(`${API_URL}/api/citas`, {
+            // CORRECCIÓN: Usar la ruta correcta 'mis-citas'
+            const res = await fetch(`${API_URL}/api/citas/mis-citas`, {
                 headers: { "Authorization": "Bearer " + token }
             });
 
@@ -59,7 +60,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p><strong>${etiquetaOtro}:</strong> ${nombreOtro}</p>
                     <p><strong>📍 Dirección:</strong> ${cita.direccion_servicio}</p>
                     <p><strong>💬 Motivo:</strong> ${cita.motivo}</p>
-                    <div class="hero-actions" style="margin-top:15px; justify-content: flex-start;">
+                    
+                    <div class="hero-actions" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+                        <button class="btn btn-primary btn-sm" onclick="window.location.href='dashboard.html'" style="width:100%">
+                            💬 Ir al Chat (Ver en Dashboard)
+                        </button>
                         ${generarBotones(cita, role)}
                     </div>
                 `;
@@ -86,32 +91,34 @@ document.addEventListener("DOMContentLoaded", () => {
     function generarBotones(cita, rolUsuario) {
         if (cita.estado === 'completada' || cita.estado === 'rechazada') return '';
 
+        let html = '<div style="display:flex; gap:10px; width:100%">';
+
         if (rolUsuario === 'trabajador') {
             if (cita.estado === 'pendiente') {
-                return `
-                    <button class="btn btn-primary btn-sm" onclick="cambiarEstado(${cita.id}, 'aceptada')">Aceptar</button>
-                    <button class="btn btn-muted btn-sm" onclick="cambiarEstado(${cita.id}, 'rechazada')">Rechazar</button>
+                html += `
+                    <button class="btn btn-primary btn-sm" onclick="window.cambiarEstado(${cita.id}, 'aceptada')">Aceptar</button>
+                    <button class="btn btn-muted btn-sm" onclick="window.cambiarEstado(${cita.id}, 'rechazada')">Rechazar</button>
                 `;
             }
             if (cita.estado === 'aceptada') {
-                return `
-                    <button class="btn btn-primary btn-sm" onclick="cambiarEstado(${cita.id}, 'completada')">Terminar Trabajo</button>
-                    <button class="btn btn-muted btn-sm" onclick="cambiarEstado(${cita.id}, 'cancelada')">Cancelar Cita</button>
+                html += `
+                    <button class="btn btn-primary btn-sm" onclick="window.cambiarEstado(${cita.id}, 'completada')">Terminar Trabajo</button>
+                    <button class="btn btn-muted btn-sm" onclick="window.cambiarEstado(${cita.id}, 'cancelada')">Cancelar</button>
                 `;
             }
         } else {
             if (cita.estado === 'pendiente' || cita.estado === 'aceptada') {
-                return `
-                    <button class="btn btn-muted btn-sm" onclick="cambiarEstado(${cita.id}, 'cancelada')">Cancelar Solicitud</button>
+                html += `
+                    <button class="btn btn-muted btn-sm" onclick="window.cambiarEstado(${cita.id}, 'cancelada')">Cancelar Solicitud</button>
                 `;
             }
         }
-        return '';
+        html += '</div>';
+        return html;
     }
 
     // --- FUNCIÓN GLOBAL CON SWEETALERT ---
     window.cambiarEstado = async (id, nuevoEstado) => {
-        // Usamos Swal en lugar de confirm()
         const result = await Swal.fire({
             title: '¿Estás seguro?',
             text: `Vas a cambiar el estado a: ${nuevoEstado.toUpperCase()}`,
@@ -119,8 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showCancelButton: true,
             confirmButtonColor: '#e37c2a',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, confirmar',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: 'Sí, confirmar'
         });
 
         if (!result.isConfirmed) return;
@@ -136,13 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (res.ok) {
-                Swal.fire(
-                    '¡Actualizado!',
-                    'El estado de la cita ha cambiado.',
-                    'success'
-                ).then(() => {
-                    cargarCalendario(); // Recargar sin refrescar toda la página
-                });
+                Swal.fire('¡Actualizado!', 'El estado ha cambiado.', 'success')
+                .then(() => location.reload());
             } else {
                 Swal.fire('Error', 'No se pudo actualizar.', 'error');
             }

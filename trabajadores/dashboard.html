@@ -58,6 +58,54 @@
   </div>
 
 </section>
+<div id="detailsModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 800px; display:flex; flex-direction:column; max-height:90vh;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>📋 Detalles del Trabajo</h3>
+            <button onclick="document.getElementById('detailsModal').style.display='none'" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div class="grid cols-2" style="margin-top:10px; flex:1; overflow:hidden;">
+            <div style="overflow-y:auto; padding-right:10px;">
+                <div class="section-box" style="background:#fff; border:1px solid #eee;">
+                    <h4 style="margin-top:0;">📍 Ubicación y Fecha</h4>
+                    <p><strong>Fecha:</strong> <span id="detFecha"></span> - <span id="detHora"></span></p>
+                    <p><strong>Dirección:</strong> <span id="detDireccion"></span></p>
+                    <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+                    
+                    <h4 style="margin-top:0;">🔧 Descripción del problema</h4>
+                    <p id="detMotivo" style="color:#555; font-style:italic;">...</p>
+                    
+                    <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+                    <p><strong>Estado:</strong> <span id="detEstado" class="badge"></span></p>
+                </div>
+
+                <div id="actionButtons" style="margin-top:20px; display:none; gap:10px;">
+                    <button id="btnAcceptJob" class="btn btn-primary" style="width:100%">✅ Aceptar Trabajo</button>
+                    <button id="btnRejectJob" class="btn btn-danger" style="width:100%">❌ Rechazar</button>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; height:100%;">
+                <h4 style="margin:0 0 10px 0;">💬 Chat con el cliente/trabajador</h4>
+                <div class="chat-container" style="flex:1; margin-top:0;">
+                    <div id="chatMessages" class="chat-messages">
+                        <p style="text-align:center; color:#999; margin-top:20px;">Cargando chat...</p>
+                    </div>
+                    
+                    <form id="chatForm" class="chat-input-area">
+                        <label for="chatFile" class="chat-file-btn" title="Adjuntar foto">📷</label>
+                        <input type="file" id="chatFile" accept="image/*" style="display:none;">
+                        <span id="fileNameDisplay" style="font-size:0.7rem; color:green; display:none;">Foto lista</span>
+                        
+                        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." autocomplete="off">
+                        <button type="submit" class="btn btn-sm btn-primary">➤</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </main>
 
 <footer class="site-footer">

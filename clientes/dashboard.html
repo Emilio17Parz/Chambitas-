@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Cliente | CHAMBITAS.COM</title>
   <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.min.css" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23e37c2a' width='100' height='100'/><text x='50' y='60' font-family='Arial' font-size='60' text-anchor='middle' fill='white'>C</text></svg>">
 </head>
 <body>
@@ -22,7 +23,7 @@
         <a href="dashboard.html" class="active">Dashboard</a>
         <a href="providers.html">Trabajadores</a> 
         <a href="calendar.html">Calendario</a>
-         <a href="reviews.html">Reseñas</a>
+        <a href="reviews.html">Reseñas</a>
         <a href="../profile.html">Mi Perfil</a>
         <button class="btn btn-sm" onclick="forzarCierre()">Cerrar Sesión</button>
     </nav>
@@ -34,9 +35,9 @@
 <section class="welcome-section">
   <div class="welcome-banner">
     <h2>Bienvenido, <span id="userName">Cargando...</span></h2>
-    <p><strong>Correo:</strong> <span id="userEmail">Cargando...</span></p>
-    <p><strong>Rol:</strong> <span id="userRole">Cargando...</span></p>
-    <p><strong>Domicilio:</strong> <span id="userDate">Cargando...</span></p>
+    <p><strong>Correo:</strong> <span id="userEmail">...</span></p>
+    <p><strong>Rol:</strong> <span id="userRole">...</span></p>
+    <p><strong>Domicilio:</strong> <span id="userDate">...</span></p>
   </div>
 </section>
 
@@ -52,10 +53,66 @@
   <h2 style="margin-top:24px; margin-bottom: 15px;">Mis Próximos Servicios</h2>
   
   <div class="cards-appointments" id="listaCitas">
-      <p>Cargando citas...</p>
+      <p class="empty">Cargando citas...</p>
   </div>
 
 </section>
+
+<div id="detailsModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 900px; width: 95%; display:flex; flex-direction:column; max-height:90vh;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid #eee;">
+            <h3 style="margin:0;">📋 Detalles del Trabajo</h3>
+            <button onclick="window.cerrarDetalles()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div class="grid cols-2" style="margin-top:15px; flex:1; overflow:hidden; gap:20px;">
+            
+            <div style="overflow-y:auto; padding-right:5px;">
+                <div class="section-box" style="background:#fff; border:1px solid #eee; padding:15px; border-radius:8px;">
+                    <h4 style="margin-top:0; color:var(--brand-start);">📍 Ubicación y Fecha</h4>
+                    <p style="margin-bottom:5px;"><strong>Fecha:</strong> <span id="detFecha"></span> - <span id="detHora"></span></p>
+                    <p><strong>Dirección:</strong> <span id="detDireccion"></span></p>
+                    
+                    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                    
+                    <h4 style="margin-top:0; color:var(--brand-start);">🔧 Descripción del problema</h4>
+                    <p id="detMotivo" style="color:#555; font-style:italic; background:#f9f9f9; padding:10px; border-radius:4px;">...</p>
+                    
+                    <div id="detFotoProblema" style="margin-top:10px;"></div>
+
+                    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                    <p><strong>Estado:</strong> <span id="detEstado" class="badge"></span></p>
+                </div>
+
+                <div id="actionButtons" style="margin-top:20px; display:none; gap:10px;">
+                    <button id="btnAcceptJob" class="btn btn-primary" style="width:100%">✅ Aceptar Trabajo</button>
+                    <button id="btnRejectJob" class="btn btn-danger" style="width:100%">❌ Rechazar</button>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; height:100%; border-left:1px solid #eee; padding-left:15px;">
+                <h4 style="margin:0 0 10px 0; color:var(--brand-end);">💬 Chat Directo</h4>
+                
+                <div class="chat-container" style="flex:1; margin-top:0; display:flex; flex-direction:column; border:1px solid #ddd; border-radius:8px; overflow:hidden;">
+                    
+                    <div id="chatMessages" class="chat-messages" style="flex:1; overflow-y:auto; padding:15px; background:#f4f7fa;">
+                        <p style="text-align:center; color:#999; margin-top:20px;">Cargando chat...</p>
+                    </div>
+                    
+                    <form id="chatForm" class="chat-input-area" style="background:white; padding:10px; border-top:1px solid #ddd; display:flex; align-items:center; gap:10px;">
+                        <label for="chatFile" class="chat-file-btn" title="Adjuntar foto" style="cursor:pointer; font-size:1.2rem;">📷</label>
+                        <input type="file" id="chatFile" accept="image/*" style="display:none;">
+                        <span id="fileNameDisplay" style="font-size:0.7rem; color:green; display:none;">Foto lista</span>
+                        
+                        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." autocomplete="off" style="flex:1; padding:8px; border-radius:20px; border:1px solid #ccc;">
+                        <button type="submit" class="btn btn-sm btn-primary" style="border-radius:50%; width:35px; height:35px; padding:0; display:flex; align-items:center; justify-content:center;">➤</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </main>
 
 <footer class="site-footer">
@@ -71,6 +128,7 @@
 <script src="../assets/js/auth-guard.js?v=999"></script> 
 <script src="../assets/js/dashboard.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
   function forzarCierre() {
     console.log("Forzando cierre de sesión...");

@@ -33,7 +33,7 @@ img { max-width: 100%; height: auto; }
   color: white;
   position: sticky;
   top: 0;
-  z-index: 100; /* Z-index alto para que no lo tapen elementos normales */
+  z-index: 100;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
@@ -47,7 +47,7 @@ img { max-width: 100%; height: auto; }
 
 /* Logo con efecto 3D Sobresaliente */
 .logo-masc {
-  height: 65px; /* Un poco más controlado para móviles */
+  height: 65px;
   position: relative;
   top: 5px; 
   margin-right: 10px;
@@ -64,7 +64,7 @@ img { max-width: 100%; height: auto; }
   display: flex;
   align-items: center;
   gap: 6px;
-  z-index: 21; /* Encima del menú móvil */
+  z-index: 21;
 }
 
 .brand a {
@@ -117,35 +117,66 @@ img { max-width: 100%; height: auto; }
 
 /* === RESPONSIVE MENU (Móvil) === */
 @media (max-width: 960px) {
-  .logo-masc { height: 50px; top: 0; } /* Logo normal en móvil */
+  .logo-masc { 
+    height: 45px; 
+    top: 0; 
+  } 
   
-  .menu-toggle { display: block; }
+  .menu-toggle { 
+    display: block; 
+  }
   
-  .main-nav {
-    display: none; /* Oculto por defecto */
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--brand-end);
-    flex-direction: column;
-    padding: 20px;
-    gap: 10px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    border-top: 1px solid rgba(255,255,255,0.1);
+  .site-header .container {
+    position: relative; 
   }
 
-  /* Clase que agrega JS para mostrar el menú */
-  .site-header.open .main-nav { display: flex; }
+  .main-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    
+    /* Menú flotante a la derecha */
+    right: 16px;
+    left: auto;
+    width: auto;
+    min-width: 200px;
+    
+    /* Estilos visuales */
+    background: rgba(20, 61, 89, 0.95); 
+    backdrop-filter: blur(5px); 
+    
+    flex-direction: column;
+    padding: 10px;
+    gap: 6px;
+    
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+  }
+
+  .site-header.open .main-nav { 
+    display: flex; 
+  }
   
   .main-nav a { 
     display: block; 
     width: 100%; 
-    text-align: center; 
-    padding: 12px;
+    text-align: center;
+    padding: 10px 15px; 
+    font-size: 0.9rem;
+    border-radius: 8px;
+    white-space: nowrap;
   }
   
-  #logoutBtn { margin-left: 0; width: 100%; margin-top: 10px; }
+  .main-nav a:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  #logoutBtn { 
+    margin-left: 0; 
+    width: 100%; 
+    margin-top: 5px; 
+  }
 }
 
 /* === COMPONENTES UI === */
@@ -174,7 +205,6 @@ img { max-width: 100%; height: auto; }
 .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 
-/* Grid Responsivo Automático (Mejor que media queries fijas) */
 .providers-grid, .calendar-grid, .cards-appointments {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -279,34 +309,270 @@ img { max-width: 100%; height: auto; }
 .estado.completada { background: #cff4fc; color: #055160; }
 .estado.cancelada { background: #e2e3e5; color: #41464b; }
 
-/* === MODALES Y Z-INDEX (CORRECCIÓN CRÍTICA) === */
+/* === MODALES Y Z-INDEX === */
 
-/* El fondo oscuro del modal debe estar muy arriba */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Un poco más oscuro para mejor contraste */
-  display: none; /* JS lo cambia a flex */
+  background: rgba(0, 0, 0, 0.6); 
+  display: none; 
   justify-content: center;
   align-items: center;
-  z-index: 9999 !important; /* MÁXIMA PRIORIDAD */
+  z-index: 9999 !important; 
   padding: 20px;
-  backdrop-filter: blur(2px); /* Efecto moderno */
+  backdrop-filter: blur(2px); 
 }
 
-/* El contenido del modal */
-.modal-content, .modal {
+/* --- ESTILOS DEL CHAT (CORREGIDO) --- */
+
+/* 1. Modal Flexible */
+/* 1. Modal Flexible (CON FONDO BLANCO) */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh !important; /* Altura máxima */
+  overflow: hidden; /* Evita scroll en el modal completo */
+  
+  /* --- ESTO FALTABA PARA QUE SE VEA EL CONTENEDOR --- */
+  background-color: #ffffff; 
+  border-radius: 12px;       /* Bordes redondeados bonitos */
+  padding: 20px;             /* Espacio interno */
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3); /* Sombra para profundidad */
+  /* -------------------------------------------------- */
+}
+/* 2. Grid Interno */
+.modal-content .grid {
+  flex: 1;
+  overflow: hidden; 
+  min-height: 0;
+}
+
+/* 3. Columna Derecha (Chat) */
+.modal-content .grid > div:last-child {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* 4. Contenedor del Chat (FONDO BLANCO SÓLIDO) */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;           /* Ocupa el espacio disponible */
+  min-height: 0;     /* Permite encogerse */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  
+  /* FONDO BLANCO PURO (Evita transparencia) */
+  background: #ffffff; 
+  
+  margin-top: 15px;
+  overflow: hidden; 
+  /* Sombra corregida */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 5. Área de Mensajes (CON FONDO TRANSPARENTE Y SCROLL) */
+.chat-messages {
+  flex: 1;           /* Ocupa todo el espacio restante */
+  overflow-y: auto;  /* Solo esta parte hace scroll */
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  
+  /* FONDO AZUL TENUE */
+  background-color: rgba(31, 84, 120, 0.05); 
+}
+
+/* 6. Input (Escribir mensaje) - FIJO */
+.chat-input-area {
+  flex-shrink: 0;    /* NO permite que se encoja o desaparezca */
+  padding: 10px;
+  border-top: 1px solid #ddd;
   background: white;
-  padding: 25px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-  max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.chat-file-btn {
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+.chat-file-btn:hover { color: var(--brand-start); }
+
+#chatInput { 
+  flex: 1; 
+  resize: none; 
+  height: 40px; 
+  border-radius: 20px; 
+  padding: 10px; 
+  border: 1px solid #ccc; 
+}
+
+/* --- ESTILOS DE BURBUJAS DE CHAT --- */
+
+.message {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
   position: relative;
-  z-index: 10000 !important; /* Encima del overlay */
-  animation: slideUp 0.3s ease-out;
+  word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Mensajes MÍOS (Derecha) */
+.message.me {
+  align-self: flex-end;
+  background: var(--brand-start);
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+/* Mensajes del OTRO (Izquierda) */
+.message.them {
+  align-self: flex-start;
+  background: white; 
+  color: #333;
+  border-bottom-left-radius: 2px;
+}
+
+/* Corrección de Imágenes Grandes */
+.message img {
+  max-width: 100%;
+  max-height: 200px; /* Evita que rompa el chat */
+  width: auto;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 5px;
+  cursor: pointer;
+  background-color: rgba(0,0,0,0.05);
+}
+
+.message-time {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* Ajustes Móvil para Chat */
+@media (max-width: 600px) {
+  .message {
+    max-width: 90%;
+  }
+  .modal-content {
+    max-height: 95vh !important; 
+    width: 95% !important;
+  }
+}
+
+/* === NOTIFICACIONES === */
+
+/* Contenedor del Logo */
+.brand { position: relative; cursor: pointer; }
+
+/* Punto Rojo (Badge) */
+.notif-badge {
+  position: absolute;
+  top: -5px;
+  left: 45px; 
+  background-color: #ff3b30;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 30;
+  display: none; 
+  animation: bounceIn 0.3s;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0); }
+  80% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Menú Desplegable Notificaciones */
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  width: 280px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  z-index: 2000;
+  padding: 15px;
+  border: 1px solid #eee;
+}
+
+.notif-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 40px;
+  width: 15px;
+  height: 15px;
+  background: white;
+  transform: rotate(45deg);
+  border-left: 1px solid #eee;
+  border-top: 1px solid #eee;
+}
+
+.notif-dropdown h4 { margin: 0 0 10px 0; color: var(--brand-end); font-size:1rem; border-bottom:1px solid #eee; padding-bottom:5px; }
+.notif-dropdown p { font-size: 0.9rem; color: #666; margin: 0; }
+
+.notif-btn-action {
+  display: block;
+  margin-top: 10px;
+  background: var(--brand-start);
+  color: white;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* Tarjeta Resaltada */
+.card-new-message {
+  border: 2px solid #e37c2a !important; 
+  background-color: #fffaf5 !important; 
+  position: relative;
+  animation: pulseBorder 2s infinite;
+}
+
+.card-new-message::after {
+  content: "📩 Nuevo Mensaje";
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  background: #e37c2a;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+@keyframes pulseBorder {
+  0% { box-shadow: 0 0 0 0 rgba(227, 124, 42, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(227, 124, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(227, 124, 42, 0); }
 }
 
 @keyframes slideUp {
@@ -314,7 +580,7 @@ img { max-width: 100%; height: auto; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Asegurar que SweetAlert esté AÚN MÁS arriba */
+/* SweetAlert por encima de todo */
 .swal2-container {
   z-index: 20000 !important;
 }
@@ -323,7 +589,7 @@ img { max-width: 100%; height: auto; }
 .site-footer {
   background: #fff;
   border-top: 1px solid #eaeaea;
-  margin-top: auto; /* Push to bottom */
+  margin-top: auto;
   padding: 40px 0;
 }
 .site-footer .container { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
@@ -337,3 +603,4 @@ img { max-width: 100%; height: auto; }
 }
 .mensaje-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 .mensaje-exito { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+

@@ -302,3 +302,54 @@ window.usarDireccionRegistrada = async function() {
         inputDir.placeholder = originalPlaceholder;
     }
 };
+document.getElementById("bookingForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) return Swal.fire("Error", "Debes iniciar sesión.", "warning");
+
+    // --- VALIDACIÓN FECHA ---
+    const selectedDate = document.getElementById("bookDate").value;
+    const today = new Date().toISOString().split('T')[0];
+    if (selectedDate < today) return Swal.fire("Error", "Fecha inválida.", "error");
+
+    // --- NUEVO: USAR FORMDATA PARA ENVIAR FOTO ---
+    const formData = new FormData();
+    formData.append("trabajador_id", document.getElementById("bookingWorkerId").value);
+    formData.append("fecha", document.getElementById("bookDate").value);
+    formData.append("hora", document.getElementById("bookTime").value);
+    formData.append("direccion_servicio", document.getElementById("bookAddress").value);
+    formData.append("motivo", document.getElementById("bookReason").value);
+    
+    // Adjuntar foto si existe
+    const fileInput = document.getElementById("bookPhoto");
+    if(fileInput.files.length > 0) {
+        formData.append("foto_problema", fileInput.files[0]);
+    }
+
+    try {
+        // Nota: Al usar FormData, NO ponemos Content-Type header manualmente
+        const res = await fetch(`${API_URL}/api/citas/crear`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token },
+            body: formData
+        });
+
+        if (res.ok) {
+            Swal.fire({
+                title: '¡Solicitud Enviada!',
+                text: 'El trabajador verá tu foto y descripción.',
+                icon: 'success',
+                confirmButtonColor: '#e37c2a',
+                confirmButtonText: 'Ir a Calendario'
+            }).then(() => {
+                window.location.href = "calendar.html"; // O dashboard
+            });
+        } else {
+            const err = await res.json();
+            Swal.fire("Error", err.error || "No se pudo agendar.", "error");
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "Fallo de conexión", "error");
+    }
+});
