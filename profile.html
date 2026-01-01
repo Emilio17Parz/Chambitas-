@@ -138,7 +138,7 @@
         if (role === 'trabajador') {
             menuHTML = `<a href="trabajadores/dashboard.html">Dashboard</a><a href="trabajadores/clients.html">Mis Clientes</a><a href="trabajadores/suppliers.html">Proveedores</a><a href="trabajadores/calendar.html">Calendario</a><a href="profile.html" class="active">Mi Perfil</a>`;
         } else {
-            menuHTML = `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a><a href="profile.html" class="active">Mi Perfil</a>`;
+            menuHTML = `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a><a href="clientes/calendar.html">Calendario</a><a href="clientes/reviews.html">Reviews</a><a href="profile.html" class="active">Mi Perfil</a>`;
         }
         menuHTML += `<button class="btn btn-sm" onclick="logout()" style="margin-left: 10px;">Cerrar Sesión</button>`;
         navContainer.innerHTML = menuHTML;

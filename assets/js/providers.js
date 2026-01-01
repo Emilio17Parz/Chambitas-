@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:4000";
+const API_URL = "https://chambitas-backend-ncie.onrender.com";
 let allWorkers = []; // Guardamos copia local para filtrar rápido
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = "http://localhost:4000";
+    const API_URL = "https://chambitas-backend-ncie.onrender.com";
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("userRole"); 
 

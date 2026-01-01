@@ -2,15 +2,14 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
-const PORT = 5500;
+// CAMBIO CLAVE: Render te asignará un puerto, si no existe usa 5500
+const PORT = process.env.PORT || 5500; 
 
-// 1. IMPORTANTE: Servir archivos estáticos PRIMERO
-// Esto permite que el navegador encuentre style.css, app.js, imágenes, etc.
 app.use("/assets", express.static(path.join(__dirname, "assets")));
-// Si tienes carpetas 'clientes' o 'trabajadores', sírvelas también:
 app.use("/clientes", express.static(path.join(__dirname, "clientes")));
 app.use("/trabajadores", express.static(path.join(__dirname, "trabajadores")));
 
+// El resto de tus rutas se quedan igual...
 // 2. Ruta para la raíz (Index)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));

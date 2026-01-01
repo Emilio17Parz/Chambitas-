@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:4000";
+const API_URL = "https://chambitas-backend-ncie.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
     // Lógica de Tabs
