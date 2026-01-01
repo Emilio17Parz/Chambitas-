@@ -86,8 +86,10 @@ router.post("/login", async (req, res) => {
     }
 
     const user = rows[0];
-    let valid = await bcrypt.compare(contraseña, user.contraseña);
+    const hashGuardado = user.contraseña || ""; 
+    const passIngresada = contraseña || "";
 
+    const valid = await bcrypt.compare(passIngresada, hashGuardado);
     // Auto-fix para usuario t1 (opcional, si lo sigues usando)
     if (!valid && correo === 't1@mail.com' && contraseña === '123456') {
         const hashNuevo = await bcrypt.hash("123456", 10);
