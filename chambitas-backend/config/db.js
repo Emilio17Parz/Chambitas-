@@ -8,7 +8,7 @@ export const db = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306, // ¡Importante para Railway!
+  port: process.env.DB_PORT || 3306, // Render leerá su variable (21868) y tu PC usará el 3306
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
