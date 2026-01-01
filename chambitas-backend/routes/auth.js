@@ -39,8 +39,8 @@ router.post("/register", (req, res) => {
 
       const sql = `
         INSERT INTO usuarios
-        (nombre, apellidos, correo, contraseña, tipo_usuario,
-         fecha_nacimiento, domicilio, oficio, documento_ine)
+        (nombre, apellidos, correo, password, tipo_usuario, 
+        fecha_nacimiento, domicilio, oficio, documento_ine)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
@@ -86,7 +86,7 @@ router.post("/login", async (req, res) => {
     }
 
     const user = rows[0];
-    const hashGuardado = user.contraseña || ""; 
+    const hashGuardado = user.password || ""; 
     const passIngresada = contraseña || "";
 
     const valid = await bcrypt.compare(passIngresada, hashGuardado);
