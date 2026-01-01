@@ -94,13 +94,16 @@
                     </div>
                     
                     <form id="chatForm" class="chat-input-area">
-                        <label for="chatFile" class="chat-file-btn" title="Adjuntar foto">📷</label>
-                        <input type="file" id="chatFile" accept="image/*" style="display:none;">
-                        <span id="fileNameDisplay" style="font-size:0.7rem; color:green; display:none;">Foto lista</span>
-                        
-                        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." autocomplete="off">
-                        <button type="submit" class="btn btn-sm btn-primary">➤</button>
-                    </form>
+                      <label for="chatFile" class="chat-file-btn" title="Adjuntar foto">📷</label>
+                      <input type="file" id="chatFile" accept="image/*" style="display:none;">
+                      
+                      <div style="position: relative; flex: 1; display: flex; align-items: center;">
+                          <input type="text" id="chatInput" placeholder="Escribe un mensaje..." autocomplete="off">
+                          <span id="fileNameDisplay" style="position: absolute; top: -18px; left: 10px; font-size: 0.65rem; color: #166534; font-weight: bold; display: none; background: #dcfce7; padding: 2px 6px; border-radius: 5px;">✅ Foto lista</span>
+                      </div>
+                      
+                      <button type="submit">➤</button>
+                  </form>
                 </div>
             </div>
         </div>

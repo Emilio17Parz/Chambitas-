@@ -387,30 +387,45 @@ img { max-width: 100%; height: auto; }
 }
 
 /* 6. Input (Escribir mensaje) - FIJO */
-.chat-input-area {
-  flex-shrink: 0;    /* NO permite que se encoja o desaparezca */
-  padding: 10px;
-  border-top: 1px solid #ddd;
-  background: white;
-  display: flex;
-  gap: 10px;
-  align-items: center;
+/* El botón de enviar (el círculo azul) */
+.chat-input-area button[type="submit"] {
+    flex-shrink: 0; /* ¡ESTO ES LO MÁS IMPORTANTE! Evita que se aplaste */
+    width: 42px;
+    height: 42px;
+    background-color: var(--brand-start);
+    color: white;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* Icono de la cámara */
 .chat-file-btn {
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--muted);
+    flex-shrink: 0;
+    font-size: 1.4rem;
+    color: var(--muted);
 }
+
 .chat-file-btn:hover { color: var(--brand-start); }
 
-#chatInput { 
-  flex: 1; 
-  resize: none; 
-  height: 40px; 
-  border-radius: 20px; 
-  padding: 10px; 
-  border: 1px solid #ccc; 
+/* El cuadro de texto */
+#chatInput {
+    flex: 1;
+    min-width: 0; /* Permite que el input se encoja correctamente sin empujar otros elementos */
+    height: 42px;
+    border-radius: 21px;
+    padding: 0 15px;
+    border: 1px solid #ddd;
+    font-size: 16px; /* Evita zoom automático en iPhone */
+    outline: none;
+}
+#chatInput:focus {
+    border-color: var(--brand-start);
 }
 
 /* --- ESTILOS DE BURBUJAS DE CHAT --- */
