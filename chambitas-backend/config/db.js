@@ -2,11 +2,16 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const db = await mysql.createConnection({
+// Usamos createPool en lugar de createConnection para mayor estabilidad en la nube
+export const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306, // ¡Importante para Railway!
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-console.log('✅ Conectado a la base de datos MySQL');
+console.log('✅ Pool de conexión a MySQL configurado');
