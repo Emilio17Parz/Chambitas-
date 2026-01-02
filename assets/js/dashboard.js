@@ -22,7 +22,10 @@ async function cargarPerfil() {
             document.getElementById("userName").textContent = `${user.nombre} ${user.apellidos || ""}`;
             document.getElementById("userEmail").textContent = user.correo;
             document.getElementById("userRole").textContent = user.tipo_usuario.toUpperCase();
-            document.getElementById("userDate").textContent = user.domicilio || "---";
+            
+            // CAMBIO: Mostrar el Oficio (o "Cliente" si es cliente) en lugar del Domicilio
+            const profesion = user.tipo_usuario === 'trabajador' ? (user.oficio || "General") : "Usuario Cliente";
+            document.getElementById("userDate").textContent = profesion; 
         }
     } catch (err) { console.error(err); }
 }

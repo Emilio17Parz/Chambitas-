@@ -7,42 +7,63 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Carpeta donde guardar archivos
-const uploadsDir = path.join(__dirname, "../uploads/ine");
+// 1. Definir rutas de carpetas
+const ineDir = path.join(__dirname, "../uploads/ine");
+const perfilesDir = path.join(__dirname, "../uploads/perfiles");
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Asegurar que ambas carpetas existan
+[ineDir, perfilesDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
-// Configuración del almacenamiento
+// 2. Configuración del almacenamiento dinámico
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    // Si el campo es foto_perfil va a su carpeta, si no a ine
+    if (file.fieldname === "foto_perfil") {
+      cb(null, perfilesDir);
+    } else {
+      cb(null, ineDir);
+    }
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const fileName = `${Date.now()}-ine${ext}`;
+    // Nombre único: timestamp-nombredelcampo.extension
+    const fileName = `${Date.now()}-${file.fieldname}${ext}`;
     cb(null, fileName);
   }
 });
 
-// Filtro de archivos
+// 3. Filtro de archivos inteligente
 const fileFilter = (req, file, cb) => {
-  const allowed = [
-    "application/pdf",
-    "image/jpeg",
-    "image/png"
-  ];
+  const isImage = ["image/jpeg", "image/png"].includes(file.mimetype);
+  const isPDF = file.mimetype === "application/pdf";
 
-  if (allowed.includes(file.mimetype)) {
-    cb(null, true);
+  if (file.fieldname === "foto_perfil") {
+    // La foto de perfil SOLO puede ser imagen
+    if (isImage) {
+      cb(null, true);
+    } else {
+      cb(new Error("La foto de perfil debe ser JPG o PNG"), false);
+    }
   } else {
-    cb(new Error("Formato de archivo no permitido (solo PDF/JPG/PNG)"), false);
+    // La INE puede ser imagen o PDF
+    if (isImage || isPDF) {
+      cb(null, true);
+    } else {
+      cb(new Error("La INE debe ser PDF, JPG o PNG"), false);
+    }
   }
 };
 
-// Middleware final
-export const uploadINE = multer({
+// 4. Exportar middleware para CAMPOS MÚLTIPLES
+export const uploadRegistro = multer({
   storage,
-  fileFilter
-}).single("ine");   // <-- IMPORTANTE, el input debe llamarse "ine"
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // Límite de 5MB por archivo
+}).fields([
+  { name: "ine", maxCount: 1 },
+  { name: "foto_perfil", maxCount: 1 }
+]);
