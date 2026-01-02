@@ -54,6 +54,7 @@
 
       <div class="grid cols-1" style="gap: 15px;">
           <p><strong>📧 Correo:</strong> <span id="profileEmail">---</span></p>
+          <p><strong>📞 Teléfono:</strong> <span id="profilePhone">---</span></p>
           <p><strong id="labelExtra">📍 Datos extra:</strong> <span id="profileExtra">---</span></p>
       </div>
 
@@ -99,6 +100,9 @@
                 <div class="form-group"><label>Nombre</label><input id="editNombre" required></div>
                 <div class="form-group"><label>Apellidos</label><input id="editApellidos" required></div>
             </div>
+            
+            <div class="form-group"><label>📞 Número de Contacto</label><input id="editTelefono" placeholder="Ej: 5512345678"></div>
+            
             <div class="form-group"><label>Domicilio</label><input id="editDomicilio"></div>
             
             <div class="form-group" id="divEditOficio"><label>Oficio</label><input id="editOficio"></div>
@@ -127,14 +131,17 @@
     const API_URL = "https://chambitas-backend-ncie.onrender.com";
     let currentUserData = {};
 
-    // Función para corregir visualmente la Ñ y acentos rotos
+    // Función para corregir visualmente la Ñ y acentos
     function corregirOrtografia() {
         const elementos = document.querySelectorAll('body *:not(script):not(style)');
         elementos.forEach(el => {
             if (el.children.length === 0 && el.textContent !== "") {
                 el.textContent = el.textContent
                     .replace(/\?\?/g, 'ñ') 
-                    .replace(/M\?xico/g, 'México'); 
+                    .replace(/M\?\?xico/g, 'México')
+                    .replace(/M\?xico/g, 'México')
+                    .replace(/Alba\?\?il/g, 'Albañil')
+                    .replace(/Alba\?il/g, 'Albañil');
             }
         });
     }
@@ -146,7 +153,7 @@
         
         if (!token) { window.location.href = "login.html"; return; }
 
-        // MENÚ COMPLETO SEGÚN EL ROL
+        // Menú dinámico completo basado en los índices
         let menuHTML = '';
         if (role === 'trabajador') {
             menuHTML = `
@@ -170,7 +177,7 @@
                 const user = await res.json();
                 currentUserData = user;
                 mostrarDatos(user);
-                corregirOrtografia(); // Corrige la Ñ al terminar de cargar
+                corregirOrtografia();
             }
         } catch (error) { console.error(error); }
 
@@ -180,6 +187,7 @@
     function mostrarDatos(user) {
         document.getElementById("profileName").textContent = `${user.nombre} ${user.apellidos || ''}`;
         document.getElementById("profileEmail").textContent = user.correo;
+        document.getElementById("profilePhone").textContent = user.telefono || "No especificado";
         document.getElementById("profileRoleBadge").textContent = user.tipo_usuario.toUpperCase();
         
         if (user.foto_perfil) {
@@ -202,6 +210,7 @@
             valExtra.textContent = user.domicilio || "No especificado";
             document.getElementById("workerSection").style.display = "none";
         }
+        corregirOrtografia();
     }
 
     async function guardarPerfil() {
@@ -210,6 +219,7 @@
         
         formData.append("nombre", document.getElementById("editNombre").value);
         formData.append("apellidos", document.getElementById("editApellidos").value);
+        formData.append("telefono", document.getElementById("editTelefono").value);
         formData.append("domicilio", document.getElementById("editDomicilio").value);
         formData.append("oficio", document.getElementById("editOficio").value);
         formData.append("descripcion", document.getElementById("editDesc").value);
@@ -238,6 +248,7 @@
         document.getElementById("editModal").style.display = "flex";
         document.getElementById("editNombre").value = user.nombre;
         document.getElementById("editApellidos").value = user.apellidos || "";
+        document.getElementById("editTelefono").value = user.telefono || "";
         document.getElementById("editDomicilio").value = user.domicilio || "";
         
         if (user.tipo_usuario === 'trabajador') {
