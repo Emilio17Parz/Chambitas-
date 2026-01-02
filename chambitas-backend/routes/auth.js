@@ -5,8 +5,7 @@ import { db } from "../config/db.js";
 import { uploadINE } from "../middleware/upload.js";
 import { uploadRegistro } from "../middleware/upload.js";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "../utils/mailer.js";
-
+import { sendPasswordResetEmail } from "../utils/mailer.js"; // Verifica que la ruta sea correcta
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -110,13 +109,15 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Error del servidor" });
   }
 });
-
-// 1. Solicitar recuperación
+// endpoint: /api/auth/forgot-password
 router.post("/forgot-password", async (req, res) => {
     const { correo } = req.body;
     try {
-        const [users] = await db.query("SELECT id FROM usuarios WHERE correo = ?", [correo]);
-        if (users.length === 0) return res.status(404).json({ message: "El correo no existe." });
+        const [users] = await db.query("SELECT id, nombre FROM usuarios WHERE correo = ?", [correo]);
+        
+        if (users.length === 0) {
+            return res.status(404).json({ message: "Este correo no está registrado." });
+        }
 
         const token = crypto.randomBytes(20).toString('hex');
         const expires = new Date(Date.now() + 3600000); // 1 hora de validez
@@ -127,13 +128,14 @@ router.post("/forgot-password", async (req, res) => {
         );
 
         await sendPasswordResetEmail(correo, token);
-        res.json({ message: "Correo de recuperación enviado." });
+        res.json({ message: "Correo enviado correctamente." });
     } catch (error) {
-        res.status(500).json({ error: "Error en el servidor." });
+        console.error(error);
+        res.status(500).json({ message: "Error al procesar la solicitud." });
     }
 });
 
-// 2. Restablecer con el token
+// endpoint: /api/auth/reset-password
 router.post("/reset-password", async (req, res) => {
     const { token, newPassword } = req.body;
     try {
@@ -142,7 +144,9 @@ router.post("/reset-password", async (req, res) => {
             [token]
         );
 
-        if (users.length === 0) return res.status(400).json({ message: "Token inválido o expirado." });
+        if (users.length === 0) {
+            return res.status(400).json({ message: "El enlace es inválido o ya expiró." });
+        }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await db.query(
@@ -150,9 +154,10 @@ router.post("/reset-password", async (req, res) => {
             [hashedPassword, users[0].id]
         );
 
-        res.json({ message: "Contraseña actualizada con éxito." });
+        res.json({ message: "Tu contraseña ha sido actualizada." });
     } catch (error) {
-        res.status(500).json({ error: "Error al actualizar contraseña." });
+        console.error(error);
+        res.status(500).json({ message: "Error al actualizar la contraseña." });
     }
 });
 export default router;
