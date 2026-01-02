@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Contraseña | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <div class="brand"><a href="index.html">CHAMBITAS.COM</a></div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="container form" style="max-width: 400px; margin-top: 50px;">
+    <h2>Recuperar acceso</h2>
+    <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">
+        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+    </p>
+    
+    <form id="forgotForm">
+      <div class="input">
+        <label>Correo Electrónico</label>
+        <input type="email" id="forgotEmail" placeholder="ejemplo@mail.com" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar enlace</button>
+      <div style="margin-top: 15px; text-align: center;">
+        <a href="login.html" style="color: #1f5478; text-decoration: none; font-size: 0.9rem;">Volver al inicio de sesión</a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<script>
+  const API_URL = "https://chambitas-backend-ncie.onrender.com";
+  
+  document.getElementById("forgotForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const correo = document.getElementById("forgotEmail").value;
+    
+    try {
+      Swal.fire({ title: 'Enviando...', didOpen: () => Swal.showLoading() });
+      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo })
+      });
+      
+      if (res.ok) {
+        Swal.fire("¡Correo enviado!", "Revisa tu bandeja de entrada.", "success");
+      } else {
+        const err = await res.json();
+        Swal.fire("Error", err.message || "No se pudo enviar el correo.", "error");
+      }
+    } catch (e) {
+      Swal.fire("Error", "Fallo de conexión", "error");
+    }
+  });
+</script>
+</body>
+</html>

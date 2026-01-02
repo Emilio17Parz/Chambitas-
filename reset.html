@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nueva Contraseña | CHAMBITAS.COM</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <div class="brand"><a href="index.html">CHAMBITAS.COM</a></div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="container form" style="max-width: 400px; margin-top: 50px;">
+    <h2>Nueva contraseña</h2>
+    <form id="resetForm">
+      <div class="input">
+        <label>Nueva contraseña</label>
+        <input type="password" id="newPassword" placeholder="Mínimo 6 caracteres" required>
+      </div>
+      <div class="input">
+        <label>Confirmar contraseña</label>
+        <input type="password" id="confirmPassword" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Actualizar contraseña</button>
+    </form>
+  </section>
+</main>
+
+<script>
+  const API_URL = "https://chambitas-backend-ncie.onrender.com";
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+
+  if (!token) {
+    Swal.fire("Error", "Token no válido.", "error").then(() => window.location.href = "login.html");
+  }
+
+  document.getElementById("resetForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById("newPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+
+    if (newPassword !== confirm) return Swal.fire("Error", "Las contraseñas no coinciden.", "warning");
+
+    try {
+      Swal.fire({ title: 'Actualizando...', didOpen: () => Swal.showLoading() });
+      const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword })
+      });
+
+      if (res.ok) {
+        Swal.fire("¡Éxito!", "Tu contraseña ha sido actualizada.", "success")
+        .then(() => window.location.href = "login.html");
+      } else {
+        const err = await res.json();
+        Swal.fire("Error", err.message || "El enlace ha expirado.", "error");
+      }
+    } catch (e) {
+      Swal.fire("Error", "Error de red", "error");
+    }
+  });
+</script>
+</body>
+</html>
