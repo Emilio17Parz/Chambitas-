@@ -11,7 +11,8 @@ export const db = mysql.createPool({
   port: process.env.DB_PORT || 3306, // Render leerá su variable (21868) y tu PC usará el 3306
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  charset: 'utf8mb4'
 });
 
 console.log('✅ Pool de conexión a MySQL configurado');
