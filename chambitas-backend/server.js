@@ -47,7 +47,15 @@ app.use("/api/chat", chatRoutes);
 app.get("/", (req, res) => {
   res.send("🚀 Servidor Backend Chambitas funcionando correctamente.");
 });
-
+async function arreglarBD() {
+    try {
+        await db.query("ALTER TABLE usuarios CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+        console.log("✅ Base de datos actualizada a utf8mb4");
+    } catch (err) {
+        console.error("❌ Error al actualizar:", err);
+    }
+}
+arreglarBD();
 // INICIAR
 app.listen(PORT, () => {
   console.log(`\n==================================================`);
