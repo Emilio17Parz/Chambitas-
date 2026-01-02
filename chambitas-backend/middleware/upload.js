@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const ineDir = path.join(__dirname, "../uploads/ine");
 const perfilesDir = path.join(__dirname, "../uploads/perfiles");
 
-// Asegurar que ambas carpetas existan
+// Asegurar que ambas carpetas existan para evitar errores de "Folder not found"
 [ineDir, perfilesDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -21,7 +21,7 @@ const perfilesDir = path.join(__dirname, "../uploads/perfiles");
 // 2. Configuración del almacenamiento dinámico
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Si el campo es foto_perfil va a su carpeta, si no a ine
+    // Decide la carpeta según el nombre del campo en el formulario
     if (file.fieldname === "foto_perfil") {
       cb(null, perfilesDir);
     } else {
@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    // Nombre único: timestamp-nombredelcampo.extension
+    // Genera un nombre único: timestamp-campo.ext
     const fileName = `${Date.now()}-${file.fieldname}${ext}`;
     cb(null, fileName);
   }
@@ -58,7 +58,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// 4. Exportar middleware para CAMPOS MÚLTIPLES
+// 4. Middleware principal para el registro (maneja múltiples campos)
 export const uploadRegistro = multer({
   storage,
   fileFilter,
@@ -67,3 +67,7 @@ export const uploadRegistro = multer({
   { name: "ine", maxCount: 1 },
   { name: "foto_perfil", maxCount: 1 }
 ]);
+
+// 5. ALIAS DE COMPATIBILIDAD (Para evitar el error en Render)
+// Esto permite que 'import { uploadINE }' siga funcionando mientras actualizas auth.js
+export const uploadINE = uploadRegistro;
