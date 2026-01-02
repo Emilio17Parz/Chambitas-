@@ -3,14 +3,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: 465, // Cambiado a 465 para mayor estabilidad
-  secure: true, // Debe ser true para el puerto 465
+  host: "smtp.gmail.com", // Forzamos el host directamente para evitar errores de lectura
+  port: 465, 
+  secure: true, // true para puerto 465
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS // Asegúrate de usar una "Contraseña de Aplicación" de Google
+    pass: process.env.SMTP_PASS // ¡Debe ser una "Contraseña de Aplicación"!
   },
-  connectionTimeout: 10000 // 10 segundos antes de fallar
+  tls: {
+    rejectUnauthorized: false // Ayuda a evitar bloqueos de certificados en la nube
+  }
 });
 
 export async function sendPasswordResetEmail(email, token) {
