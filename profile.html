@@ -15,7 +15,6 @@
       .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
       .section-box { background: #f9f9f9; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #e37c2a; }
       
-      /* Estilo para el Avatar Dinámico */
       .profile-avatar-container {
           width: 100px; height: 100px; background: #eee; border-radius: 50%; 
           margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; 
@@ -150,7 +149,6 @@
         
         if (!token) { window.location.href = "login.html"; return; }
 
-        // Menú dinámico
         let menuHTML = (role === 'trabajador') 
             ? `<a href="trabajadores/dashboard.html">Dashboard</a><a href="trabajadores/calendar.html">Calendario</a>`
             : `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a>`;
@@ -175,7 +173,6 @@
         document.getElementById("profileEmail").textContent = user.correo;
         document.getElementById("profileRoleBadge").textContent = user.tipo_usuario.toUpperCase();
         
-        // Cargar Foto de Perfil
         if (user.foto_perfil) {
             const avatarBox = document.getElementById("avatarBox");
             avatarBox.innerHTML = `<img src="${API_URL}/uploads/perfiles/${user.foto_perfil}" alt="Perfil">`;
@@ -194,12 +191,13 @@
         } else {
             labelExtra.textContent = "🏠 Domicilio:";
             valExtra.textContent = user.domicilio || "No especificado";
+            document.getElementById("workerSection").style.display = "none";
         }
     }
 
     async function guardarPerfil() {
         const token = localStorage.getItem("token");
-        const formData = new FormData(); // Usamos FormData para enviar archivos
+        const formData = new FormData();
         
         formData.append("nombre", document.getElementById("editNombre").value);
         formData.append("apellidos", document.getElementById("editApellidos").value);
@@ -210,7 +208,7 @@
         
         const fotoInput = document.getElementById("editFotoPerfil");
         if (fotoInput.files.length > 0) {
-            formData.append("foto_perfil", fotoInput.files[0]); //
+            formData.append("foto_perfil", fotoInput.files[0]);
         }
 
         try {
@@ -226,22 +224,29 @@
         } catch (e) { Swal.fire("Error", "Fallo de conexión", "error"); }
     }
 
-    // Funciones auxiliares
     function logout() { localStorage.clear(); window.location.href = "login.html"; }
     function cerrarModal() { document.getElementById("editModal").style.display = "none"; }
     function abrirModalFoto() { document.getElementById("photoModal").style.display = "flex"; }
+    
+    // --- FUNCIÓN MODIFICADA AQUÍ ---
     function abrirModal() {
         const user = currentUserData;
         document.getElementById("editModal").style.display = "flex";
         document.getElementById("editNombre").value = user.nombre;
         document.getElementById("editApellidos").value = user.apellidos || "";
         document.getElementById("editDomicilio").value = user.domicilio || "";
+        
         if (user.tipo_usuario === 'trabajador') {
+            // Mostrar campos de trabajador
             document.getElementById("divEditOficio").style.display = "block";
             document.getElementById("workerInputs").style.display = "block";
             document.getElementById("editOficio").value = user.oficio || "";
             document.getElementById("editDesc").value = user.descripcion || "";
             document.getElementById("editRates").value = user.tarifas || "";
+        } else {
+            // Ocultar campos de trabajador para clientes
+            document.getElementById("divEditOficio").style.display = "none";
+            document.getElementById("workerInputs").style.display = "none";
         }
     }
 
