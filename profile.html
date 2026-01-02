@@ -27,7 +27,12 @@
 <body>
 <header class="site-header">
   <div class="container">
-    <div class="brand"><a href="index.html">CHAMBITAS.COM</a></div>
+    <div class="brand">
+        <a href="index.html" style="display: flex; align-items: center; text-decoration: none; color: white; gap: 10px;">
+            <img src="assets/img/chambitas_masc.png" alt="Logo" style="height: 40px;">
+            CHAMBITAS.COM
+        </a>
+    </div>
     <nav class="main-nav" id="dynamicNav"></nav>
     <button class="menu-toggle">☰</button>
   </div>
@@ -117,30 +122,22 @@
     </div>
 </div>
 
-<div id="photoModal" class="modal-overlay">
-    <div class="modal-content">
-        <h3>Subir Evidencia</h3>
-        <form id="photoForm">
-            <div class="form-group">
-                <label>Seleccionar Foto</label>
-                <input type="file" id="evidenciaFile" accept="image/*" required>
-            </div>
-            <div class="form-group">
-                <label>Descripción</label>
-                <input type="text" id="evidenciaDesc" placeholder="Ej: Reparación terminada">
-            </div>
-            <div style="display:flex; justify-content: flex-end; gap:10px; margin-top:15px;">
-                <button type="button" class="btn btn-muted" onclick="document.getElementById('photoModal').style.display='none'">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Subir</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <script src="assets/js/app.js"></script>
 <script>
     const API_URL = "https://chambitas-backend-ncie.onrender.com";
     let currentUserData = {};
+
+    // Función para corregir visualmente la Ñ y acentos rotos
+    function corregirOrtografia() {
+        const elementos = document.querySelectorAll('body *:not(script):not(style)');
+        elementos.forEach(el => {
+            if (el.children.length === 0 && el.textContent !== "") {
+                el.textContent = el.textContent
+                    .replace(/\?\?/g, 'ñ') 
+                    .replace(/M\?xico/g, 'México'); 
+            }
+        });
+    }
 
     document.addEventListener("DOMContentLoaded", async () => {
         const token = localStorage.getItem("token");
@@ -149,10 +146,22 @@
         
         if (!token) { window.location.href = "login.html"; return; }
 
-        let menuHTML = (role === 'trabajador') 
-            ? `<a href="trabajadores/dashboard.html">Dashboard</a><a href="trabajadores/calendar.html">Calendario</a>`
-            : `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a>`;
-        menuHTML += `<a href="profile.html" class="active">Mi Perfil</a><button class="btn btn-sm" onclick="logout()" style="margin-left: 10px;">Cerrar Sesión</button>`;
+        // MENÚ COMPLETO SEGÚN EL ROL
+        let menuHTML = '';
+        if (role === 'trabajador') {
+            menuHTML = `
+                <a href="trabajadores/dashboard.html">Dashboard</a>
+                <a href="trabajadores/calendar.html">Calendario</a>
+                <a href="profile.html" class="active">Mi Perfil</a>`;
+        } else {
+            menuHTML = `
+                <a href="clientes/dashboard.html">Dashboard</a>
+                <a href="clientes/providers.html">Trabajadores</a>
+                <a href="clientes/calendar.html">Calendario</a>
+                <a href="clientes/reviews.html">Reseñas</a>
+                <a href="profile.html" class="active">Mi Perfil</a>`;
+        }
+        menuHTML += `<button class="btn btn-sm" onclick="logout()" style="margin-left: 10px;">Cerrar Sesión</button>`;
         navContainer.innerHTML = menuHTML;
 
         try {
@@ -161,11 +170,11 @@
                 const user = await res.json();
                 currentUserData = user;
                 mostrarDatos(user);
+                corregirOrtografia(); // Corrige la Ñ al terminar de cargar
             }
         } catch (error) { console.error(error); }
 
         document.getElementById("editForm").addEventListener("submit", e => { e.preventDefault(); guardarPerfil(); });
-        document.getElementById("photoForm").addEventListener("submit", e => { e.preventDefault(); subirFoto(); });
     });
 
     function mostrarDatos(user) {
@@ -224,11 +233,6 @@
         } catch (e) { Swal.fire("Error", "Fallo de conexión", "error"); }
     }
 
-    function logout() { localStorage.clear(); window.location.href = "login.html"; }
-    function cerrarModal() { document.getElementById("editModal").style.display = "none"; }
-    function abrirModalFoto() { document.getElementById("photoModal").style.display = "flex"; }
-    
-    // --- FUNCIÓN MODIFICADA AQUÍ ---
     function abrirModal() {
         const user = currentUserData;
         document.getElementById("editModal").style.display = "flex";
@@ -237,18 +241,20 @@
         document.getElementById("editDomicilio").value = user.domicilio || "";
         
         if (user.tipo_usuario === 'trabajador') {
-            // Mostrar campos de trabajador
             document.getElementById("divEditOficio").style.display = "block";
             document.getElementById("workerInputs").style.display = "block";
             document.getElementById("editOficio").value = user.oficio || "";
             document.getElementById("editDesc").value = user.descripcion || "";
             document.getElementById("editRates").value = user.tarifas || "";
         } else {
-            // Ocultar campos de trabajador para clientes
             document.getElementById("divEditOficio").style.display = "none";
             document.getElementById("workerInputs").style.display = "none";
         }
+        corregirOrtografia();
     }
+
+    function logout() { localStorage.clear(); window.location.href = "login.html"; }
+    function cerrarModal() { document.getElementById("editModal").style.display = "none"; }
 
     async function cargarGaleria(userId) {
         try {
@@ -263,22 +269,7 @@
                         <p style="padding:5px; font-size:0.8rem; margin:0; text-align:center;">${f.descripcion || 'Evidencia'}</p>
                     </div>`;
             });
-        } catch (e) { console.error(e); }
-    }
-
-    async function subirFoto() {
-        const token = localStorage.getItem("token");
-        const formData = new FormData();
-        formData.append("foto", document.getElementById("evidenciaFile").files[0]);
-        formData.append("descripcion", document.getElementById("evidenciaDesc").value);
-        try {
-            Swal.fire({ title: 'Subiendo...', didOpen: () => Swal.showLoading() });
-            const res = await fetch(`${API_URL}/api/users/evidencia`, {
-                method: "POST", headers: { "Authorization": "Bearer " + token }, body: formData
-            });
-            if (res.ok) {
-                Swal.fire("Éxito", "Foto subida", "success").then(() => window.location.reload());
-            }
+            corregirOrtografia();
         } catch (e) { console.error(e); }
     }
 </script>
