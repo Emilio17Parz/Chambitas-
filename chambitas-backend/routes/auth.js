@@ -1,11 +1,11 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { db } from "../config/db.js";
-import { uploadINE } from "../middleware/upload.js";
-import { uploadRegistro } from "../middleware/upload.js";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "../utils/mailer.js"; // Verifica que la ruta sea correcta
+import { db } from "../config/db.js";
+import { uploadRegistro } from "../middleware/upload.js"; // Se eliminó uploadINE por ser inexistente
+import { sendPasswordResetEmail } from "../utils/mailer.js";
+
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -14,11 +14,10 @@ router.get("/", (req, res) => {
 
 // --- REGISTRO ---
 router.post("/register", (req, res) => {
-  // 2. Usamos el nuevo middleware que maneja múltiples archivos
   uploadRegistro(req, res, async (err) => {
     if (err) {
       console.error("Error Multer:", err);
-      return res.status(400).json({ message: "Error al subir archivo", error: err.message });
+      return res.status(400).json({ message: "Error al subir archivos", error: err.message });
     }
 
     try {
@@ -33,11 +32,10 @@ router.post("/register", (req, res) => {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // 3. Obtenemos los nombres de archivos correctamente desde req.files
+      // Obtención de archivos desde req.files
       const documento_ine = req.files['ine'] ? req.files['ine'][0].filename : null;
       const foto_perfil = req.files['foto_perfil'] ? req.files['foto_perfil'][0].filename : null;
 
-      // 4. ACTUALIZACIÓN DEL SQL (Agregamos la columna foto_perfil y un '?' extra)
       const sql = `
         INSERT INTO usuarios
         (nombre, apellidos, correo, password, tipo_usuario, 
@@ -45,25 +43,15 @@ router.post("/register", (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      // 5. Agregamos foto_perfil al array de valores
       const [result] = await db.query(sql, [
-          nombre, 
-          apellidos, 
-          correo, 
-          hashedPassword, 
-          tipo_usuario,
-          fecha_nacimiento, 
-          domicilio, 
-          oficio, 
-          documento_ine,
-          foto_perfil // <-- ¡No olvides este!
+          nombre, apellidos, correo, hashedPassword, tipo_usuario,
+          fecha_nacimiento, domicilio, oficio, documento_ine, foto_perfil
       ]);
 
-      console.log("✅ Usuario registrado con ID:", result.insertId);
       res.json({ message: "Usuario registrado correctamente", id: result.insertId });
-
     } catch (error) {
-      // ... (manejo de errores igual)
+      console.error(error);
+      res.status(500).json({ message: "Error en el servidor al registrar" });
     }
   });
 });
@@ -71,9 +59,8 @@ router.post("/register", (req, res) => {
 // --- LOGIN ---
 router.post("/login", async (req, res) => {
   try {
-    const { correo, contraseña } = req.body;
+    const { correo, contraseña } = req.body; // Se recibe 'contraseña' desde el frontend
     
-    // Buscar usuario
     const [rows] = await db.query("SELECT * FROM usuarios WHERE correo = ?", [correo]);
 
     if (rows.length === 0) {
@@ -84,11 +71,13 @@ router.post("/login", async (req, res) => {
     const hashGuardado = user.password || ""; 
     const passIngresada = contraseña || "";
 
-    const valid = await bcrypt.compare(passIngresada, hashGuardado);
-    // Auto-fix para usuario t1 (opcional, si lo sigues usando)
+    // Se usa 'let' para permitir la reasignación en el auto-fix
+    let valid = await bcrypt.compare(passIngresada, hashGuardado);
+
+    // Auto-fix opcional para cuenta de prueba
     if (!valid && correo === 't1@mail.com' && contraseña === '123456') {
         const hashNuevo = await bcrypt.hash("123456", 10);
-        await db.query("UPDATE usuarios SET contraseña = ? WHERE id = ?", [hashNuevo, user.id]);
+        await db.query("UPDATE usuarios SET password = ? WHERE id = ?", [hashNuevo, user.id]);
         valid = true;
     }
 
@@ -109,11 +98,12 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Error del servidor" });
   }
 });
-// endpoint: /api/auth/forgot-password
+
+// --- OLVIDÉ MI CONTRASEÑA ---
 router.post("/forgot-password", async (req, res) => {
     const { correo } = req.body;
     try {
-        const [users] = await db.query("SELECT id, nombre FROM usuarios WHERE correo = ?", [correo]);
+        const [users] = await db.query("SELECT id FROM usuarios WHERE correo = ?", [correo]);
         
         if (users.length === 0) {
             return res.status(404).json({ message: "Este correo no está registrado." });
@@ -135,10 +125,11 @@ router.post("/forgot-password", async (req, res) => {
     }
 });
 
-// endpoint: /api/auth/reset-password
+// --- RESTABLECER CONTRASEÑA ---
 router.post("/reset-password", async (req, res) => {
     const { token, newPassword } = req.body;
     try {
+        // Verifica token y que no haya expirado
         const [users] = await db.query(
             "SELECT id FROM usuarios WHERE reset_password_token = ? AND reset_password_expires > NOW()",
             [token]
@@ -160,4 +151,5 @@ router.post("/reset-password", async (req, res) => {
         res.status(500).json({ message: "Error al actualizar la contraseña." });
     }
 });
+
 export default router;
