@@ -14,6 +14,14 @@
       .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
       .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
       .section-box { background: #f9f9f9; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #e37c2a; }
+      
+      /* Estilo para el Avatar Dinámico */
+      .profile-avatar-container {
+          width: 100px; height: 100px; background: #eee; border-radius: 50%; 
+          margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; 
+          font-size: 40px; overflow: hidden; border: 3px solid #e37c2a;
+      }
+      .profile-avatar-container img { width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 
@@ -32,7 +40,9 @@
 
     <div class="card profile-card" style="max-width: 800px; margin: 0 auto;">
       <div style="text-align: center;">
-          <div style="width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+          <div class="profile-avatar-container" id="avatarBox">
+              <span id="picPlaceholder">👤</span>
+          </div>
           <h3 id="profileName">Cargando...</h3>
           <span id="profileRoleBadge" class="estado" style="background: #e37c2a; color: white; padding: 2px 8px; border-radius: 10px;">---</span>
       </div>
@@ -76,6 +86,11 @@
     <div class="modal-content">
         <h3>Editar Perfil</h3>
         <form id="editForm">
+            <div class="form-group">
+                <label>📸 Cambiar Foto de Perfil</label>
+                <input type="file" id="editFotoPerfil" accept="image/*">
+            </div>
+
             <div class="grid cols-2">
                 <div class="form-group"><label>Nombre</label><input id="editNombre" required></div>
                 <div class="form-group"><label>Apellidos</label><input id="editApellidos" required></div>
@@ -97,7 +112,7 @@
 
             <div style="display:flex; justify-content: flex-end; gap:10px;">
                 <button type="button" class="btn btn-muted" onclick="cerrarModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
             </div>
         </form>
     </div>
@@ -133,124 +148,101 @@
         const role = localStorage.getItem("userRole");
         const navContainer = document.getElementById("dynamicNav");
         
-        // Menú dinámico
-        let menuHTML = '';
-        if (role === 'trabajador') {
-            menuHTML = `<a href="trabajadores/dashboard.html">Dashboard</a><a href="trabajadores/clients.html">Mis Clientes</a><a href="trabajadores/suppliers.html">Proveedores</a><a href="trabajadores/calendar.html">Calendario</a><a href="profile.html" class="active">Mi Perfil</a>`;
-        } else {
-            menuHTML = `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a><a href="clientes/calendar.html">Calendario</a><a href="clientes/reviews.html">Reviews</a><a href="profile.html" class="active">Mi Perfil</a>`;
-        }
-        menuHTML += `<button class="btn btn-sm" onclick="logout()" style="margin-left: 10px;">Cerrar Sesión</button>`;
-        navContainer.innerHTML = menuHTML;
-
         if (!token) { window.location.href = "login.html"; return; }
+
+        // Menú dinámico
+        let menuHTML = (role === 'trabajador') 
+            ? `<a href="trabajadores/dashboard.html">Dashboard</a><a href="trabajadores/calendar.html">Calendario</a>`
+            : `<a href="clientes/dashboard.html">Dashboard</a><a href="clientes/providers.html">Trabajadores</a>`;
+        menuHTML += `<a href="profile.html" class="active">Mi Perfil</a><button class="btn btn-sm" onclick="logout()" style="margin-left: 10px;">Cerrar Sesión</button>`;
+        navContainer.innerHTML = menuHTML;
 
         try {
             const res = await fetch(`${API_URL}/api/users/profile`, { headers: { "Authorization": "Bearer " + token } });
             if (res.ok) {
                 const user = await res.json();
                 currentUserData = user;
-
-                document.getElementById("profileName").textContent = `${user.nombre} ${user.apellidos || ''}`;
-                document.getElementById("profileEmail").textContent = user.correo;
-                document.getElementById("profileRoleBadge").textContent = user.tipo_usuario.toUpperCase();
-                
-                const labelExtra = document.getElementById("labelExtra");
-                const valExtra = document.getElementById("profileExtra");
-
-                if (user.tipo_usuario === 'trabajador') {
-                    labelExtra.textContent = "🛠️ Oficio:";
-                    valExtra.textContent = user.oficio || "No especificado";
-                    
-                    document.getElementById("workerSection").style.display = "block";
-                    document.getElementById("profileDesc").textContent = user.descripcion || "Sin descripción.";
-                    document.getElementById("profileRates").textContent = user.tarifas || "Preguntar.";
-                    
-                    cargarGaleria(user.id); // Cargar fotos
-                } else {
-                    labelExtra.textContent = "🏠 Domicilio:";
-                    valExtra.textContent = user.domicilio || "No especificado";
-                }
+                mostrarDatos(user);
             }
         } catch (error) { console.error(error); }
 
-        // Eventos
-        document.getElementById("editForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            await guardarPerfil();
-        });
-        
-        document.getElementById("photoForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            await subirFoto();
-        });
+        document.getElementById("editForm").addEventListener("submit", e => { e.preventDefault(); guardarPerfil(); });
+        document.getElementById("photoForm").addEventListener("submit", e => { e.preventDefault(); subirFoto(); });
     });
 
+    function mostrarDatos(user) {
+        document.getElementById("profileName").textContent = `${user.nombre} ${user.apellidos || ''}`;
+        document.getElementById("profileEmail").textContent = user.correo;
+        document.getElementById("profileRoleBadge").textContent = user.tipo_usuario.toUpperCase();
+        
+        // Cargar Foto de Perfil
+        if (user.foto_perfil) {
+            const avatarBox = document.getElementById("avatarBox");
+            avatarBox.innerHTML = `<img src="${API_URL}/uploads/perfiles/${user.foto_perfil}" alt="Perfil">`;
+        }
+
+        const labelExtra = document.getElementById("labelExtra");
+        const valExtra = document.getElementById("profileExtra");
+
+        if (user.tipo_usuario === 'trabajador') {
+            labelExtra.textContent = "🛠️ Oficio:";
+            valExtra.textContent = user.oficio || "No especificado";
+            document.getElementById("workerSection").style.display = "block";
+            document.getElementById("profileDesc").textContent = user.descripcion || "Sin descripción.";
+            document.getElementById("profileRates").textContent = user.tarifas || "Preguntar.";
+            cargarGaleria(user.id);
+        } else {
+            labelExtra.textContent = "🏠 Domicilio:";
+            valExtra.textContent = user.domicilio || "No especificado";
+        }
+    }
+
+    async function guardarPerfil() {
+        const token = localStorage.getItem("token");
+        const formData = new FormData(); // Usamos FormData para enviar archivos
+        
+        formData.append("nombre", document.getElementById("editNombre").value);
+        formData.append("apellidos", document.getElementById("editApellidos").value);
+        formData.append("domicilio", document.getElementById("editDomicilio").value);
+        formData.append("oficio", document.getElementById("editOficio").value);
+        formData.append("descripcion", document.getElementById("editDesc").value);
+        formData.append("tarifas", document.getElementById("editRates").value);
+        
+        const fotoInput = document.getElementById("editFotoPerfil");
+        if (fotoInput.files.length > 0) {
+            formData.append("foto_perfil", fotoInput.files[0]); //
+        }
+
+        try {
+            Swal.fire({ title: 'Guardando...', didOpen: () => Swal.showLoading() });
+            const res = await fetch(`${API_URL}/api/users/profile`, {
+                method: "PUT",
+                headers: { "Authorization": "Bearer " + token },
+                body: formData
+            });
+            if (res.ok) {
+                Swal.fire("Éxito", "Perfil actualizado", "success").then(() => window.location.reload());
+            } else Swal.fire("Error", "No se pudo actualizar", "error");
+        } catch (e) { Swal.fire("Error", "Fallo de conexión", "error"); }
+    }
+
+    // Funciones auxiliares
     function logout() { localStorage.clear(); window.location.href = "login.html"; }
+    function cerrarModal() { document.getElementById("editModal").style.display = "none"; }
+    function abrirModalFoto() { document.getElementById("photoModal").style.display = "flex"; }
     function abrirModal() {
         const user = currentUserData;
         document.getElementById("editModal").style.display = "flex";
         document.getElementById("editNombre").value = user.nombre;
         document.getElementById("editApellidos").value = user.apellidos || "";
         document.getElementById("editDomicilio").value = user.domicilio || "";
-        
         if (user.tipo_usuario === 'trabajador') {
             document.getElementById("divEditOficio").style.display = "block";
             document.getElementById("workerInputs").style.display = "block";
             document.getElementById("editOficio").value = user.oficio || "";
             document.getElementById("editDesc").value = user.descripcion || "";
             document.getElementById("editRates").value = user.tarifas || "";
-        } else {
-            document.getElementById("divEditOficio").style.display = "none";
-            document.getElementById("workerInputs").style.display = "none";
         }
-    }
-    function cerrarModal() { document.getElementById("editModal").style.display = "none"; }
-    function abrirModalFoto() { document.getElementById("photoModal").style.display = "flex"; }
-
-    async function guardarPerfil() {
-        const token = localStorage.getItem("token");
-        const data = {
-            nombre: document.getElementById("editNombre").value,
-            apellidos: document.getElementById("editApellidos").value,
-            domicilio: document.getElementById("editDomicilio").value,
-            oficio: document.getElementById("editOficio").value,
-            descripcion: document.getElementById("editDesc").value,
-            tarifas: document.getElementById("editRates").value
-        };
-        try {
-            const res = await fetch(`${API_URL}/api/users/profile`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                Swal.fire("Éxito", "Perfil actualizado", "success").then(() => window.location.reload());
-            } else Swal.fire("Error", "No se pudo guardar", "error");
-        } catch (e) { Swal.fire("Error", "Fallo de red", "error"); }
-    }
-
-    async function subirFoto() {
-        const token = localStorage.getItem("token");
-        const fileInput = document.getElementById("evidenciaFile");
-        const descInput = document.getElementById("evidenciaDesc");
-        const formData = new FormData();
-        formData.append("foto", fileInput.files[0]);
-        formData.append("descripcion", descInput.value);
-
-        try {
-            Swal.fire({ title: 'Subiendo...', didOpen: () => Swal.showLoading() });
-            const res = await fetch(`${API_URL}/api/users/evidencia`, {
-                method: "POST",
-                headers: { "Authorization": "Bearer " + token },
-                body: formData
-            });
-            if (res.ok) {
-                Swal.fire("Éxito", "Foto subida", "success");
-                document.getElementById("photoModal").style.display = "none";
-                cargarGaleria(currentUserData.id);
-            } else Swal.fire("Error", "No se pudo subir", "error");
-        } catch (e) { Swal.fire("Error", "Fallo de conexión", "error"); }
     }
 
     async function cargarGaleria(userId) {
@@ -258,19 +250,30 @@
             const res = await fetch(`${API_URL}/api/users/evidencia/${userId}`);
             const fotos = await res.json();
             const grid = document.getElementById("galleryGrid");
-            grid.innerHTML = "";
-            if (fotos.length === 0) {
-                grid.innerHTML = "<p>No hay fotos aún.</p>";
-                return;
-            }
+            grid.innerHTML = (fotos.length === 0) ? "<p>No hay fotos aún.</p>" : "";
             fotos.forEach(f => {
                 grid.innerHTML += `
-                    <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                    <div style="border:1px solid #ddd; border-radius:4px; overflow:hidden; background:white;">
                         <img src="${API_URL}/uploads/trabajos/${f.ruta_foto}" style="width:100%; height:150px; object-fit:cover;">
-                        <p style="padding:5px; font-size:0.8rem; margin:0;">${f.descripcion || 'Sin descripción'}</p>
-                    </div>
-                `;
+                        <p style="padding:5px; font-size:0.8rem; margin:0; text-align:center;">${f.descripcion || 'Evidencia'}</p>
+                    </div>`;
             });
+        } catch (e) { console.error(e); }
+    }
+
+    async function subirFoto() {
+        const token = localStorage.getItem("token");
+        const formData = new FormData();
+        formData.append("foto", document.getElementById("evidenciaFile").files[0]);
+        formData.append("descripcion", document.getElementById("evidenciaDesc").value);
+        try {
+            Swal.fire({ title: 'Subiendo...', didOpen: () => Swal.showLoading() });
+            const res = await fetch(`${API_URL}/api/users/evidencia`, {
+                method: "POST", headers: { "Authorization": "Bearer " + token }, body: formData
+            });
+            if (res.ok) {
+                Swal.fire("Éxito", "Foto subida", "success").then(() => window.location.reload());
+            }
         } catch (e) { console.error(e); }
     }
 </script>
