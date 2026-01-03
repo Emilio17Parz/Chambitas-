@@ -110,8 +110,12 @@ router.post("/forgot-password", async (req, res) => {
         }
 
         const token = crypto.randomBytes(20).toString('hex');
-        const expires = new Date(Date.now() + 3600000); // 1 hora de validez
+        
+        // Creamos una fecha como TEXTO para guardarla en tu columna varchar
+        // Esto genera algo tipo: "2024-01-02 15:30:00"
+        const expires = new Date(Date.now() + 3600000).toISOString().slice(0, 19).replace('T', ' '); 
 
+        // AQUÍ ESTÁ EL CAMBIO IMPORTANTE: usamos reset_password_expires2
         await db.query(
             "UPDATE usuarios SET reset_password_token = ?, reset_password_expires2 = ? WHERE correo = ?",
             [token, expires, correo]
@@ -120,7 +124,7 @@ router.post("/forgot-password", async (req, res) => {
         await sendPasswordResetEmail(correo, token);
         res.json({ message: "Correo enviado correctamente." });
     } catch (error) {
-        console.error(error);
+        console.error("Error detallado:", error); // Esto nos ayudará a ver qué pasa en Render
         res.status(500).json({ message: "Error al procesar la solicitud." });
     }
 });
@@ -129,7 +133,7 @@ router.post("/forgot-password", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
     const { token, newPassword } = req.body;
     try {
-        // Verifica token y que no haya expirado
+        // Verificamos usando la columna 2
         const [users] = await db.query(
             "SELECT id FROM usuarios WHERE reset_password_token = ? AND reset_password_expires2 > NOW()",
             [token]
@@ -140,6 +144,7 @@ router.post("/reset-password", async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
+        // Limpiamos la columna 2 al terminar
         await db.query(
             "UPDATE usuarios SET password = ?, reset_password_token = NULL, reset_password_expires2 = NULL WHERE id = ?",
             [hashedPassword, users[0].id]
