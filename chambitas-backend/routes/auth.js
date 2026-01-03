@@ -113,7 +113,7 @@ router.post("/forgot-password", async (req, res) => {
         const expires = new Date(Date.now() + 3600000); // 1 hora de validez
 
         await db.query(
-            "UPDATE usuarios SET reset_password_token = ?, reset_password_expires = ? WHERE correo = ?",
+            "UPDATE usuarios SET reset_password_token = ?, reset_password_expires2 = ? WHERE correo = ?",
             [token, expires, correo]
         );
 
@@ -131,7 +131,7 @@ router.post("/reset-password", async (req, res) => {
     try {
         // Verifica token y que no haya expirado
         const [users] = await db.query(
-            "SELECT id FROM usuarios WHERE reset_password_token = ? AND reset_password_expires > NOW()",
+            "SELECT id FROM usuarios WHERE reset_password_token = ? AND reset_password_expires2 > NOW()",
             [token]
         );
 
@@ -141,7 +141,7 @@ router.post("/reset-password", async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await db.query(
-            "UPDATE usuarios SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE id = ?",
+            "UPDATE usuarios SET password = ?, reset_password_token = NULL, reset_password_expires2 = NULL WHERE id = ?",
             [hashedPassword, users[0].id]
         );
 
