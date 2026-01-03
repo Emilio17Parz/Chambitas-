@@ -1,10 +1,8 @@
 import nodemailer from "nodemailer";
 
-// Configuración con credenciales directas para evitar errores de lectura del .env
+// Configuración optimizada para Gmail
 export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465, // Regresamos al puerto seguro SSL
-  secure: true, // IMPORTANTE: true para puerto 465
+  service: 'gmail', // Esto ajusta automáticamente host y puertos correctos
   auth: {
     user: "calzadillaemilio@gmail.com",
     pass: "pyniauhuoymbsoww" // Tu clave de aplicación
@@ -12,14 +10,18 @@ export const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false
   },
-  connectionTimeout: 10000 // Bajamos a 10s para no esperar tanto si falla
+  // IMPORTANTE: Forzamos IPv4. A veces Render intenta IPv6 y Gmail lo rechaza, causando el timeout.
+  family: 4 
 });
 
 export async function sendPasswordResetEmail(email, token) {
-  // Ajusta esta URL si tu frontend tiene otra dirección en Render
+  // Ajusta la URL si es necesario
   const url = `https://chambitas-front.onrender.com/reset.html?token=${token}`;
   
   try {
+    await transporter.verify(); // Verificamos conexión antes de enviar
+    console.log("🔌 Conexión con Gmail verificada correctamente.");
+
     await transporter.sendMail({
       from: `"Soporte Chambitas" <calzadillaemilio@gmail.com>`,
       to: email,
@@ -27,18 +29,17 @@ export async function sendPasswordResetEmail(email, token) {
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #e37c2a; text-align: center;">CHAMBITAS.COM</h2>
-          <p>Hola,</p>
-          <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente botón para continuar:</p>
+          <p>Has solicitado restablecer tu contraseña.</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${url}" style="background-color: #e37c2a; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Restablecer contraseña</a>
           </div>
-          <p style="font-size: 0.8rem; color: #666;">Este enlace es válido por 1 hora. Si no solicitaste este cambio, ignora este correo.</p>
+          <p style="font-size: 0.8rem; color: #666;">Enlace válido por 1 hora.</p>
         </div>
       `
     });
     console.log("✅ Correo enviado con éxito a:", email);
   } catch (error) {
-    console.error("❌ Error detallado al enviar correo:", error);
+    console.error("❌ Error enviando correo:", error);
     throw error;
   }
 }
