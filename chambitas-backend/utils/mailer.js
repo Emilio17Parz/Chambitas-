@@ -1,45 +1,29 @@
-import nodemailer from "nodemailer";
+import { Resend } from 'resend';
 
-export const transporter = nodemailer.createTransport({
-  service: 'gmail', // Usamos la configuración predefinida de Google
-  auth: {
-    user: "jecalzadilla@tecnomedia.com.mx", 
-    pass: "xkcfcdpaduhrggst" // Tu clave de aplicación
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  family: 4 // <--- ESTO ES MAGIA: Fuerza a usar IPv4 y evita bloqueos de red en Render
-});
+// Pega tu API Key directamente aquí entre las comillas
+const resend = new Resend('re_M32nVpdk_5AAofGyeHrPbM5j8eP7y5pr3'); 
 
 export async function sendPasswordResetEmail(email, token) {
+  // Ajusta la URL si es necesario
   const url = `https://chambitas-front.onrender.com/reset.html?token=${token}`;
-  
-  console.log("⏳ Intentando enviar correo a:", email);
 
   try {
-    // Verificamos conexión antes de enviar
-    await transporter.verify();
-    console.log("🔌 Servidor de correo listo.");
-
-    await transporter.sendMail({
-      from: `"Soporte Chambitas" <calzadillaemilio@gmail.com>`,
-      to: email,
-      subject: "Recuperación de contraseña - CHAMBITAS.COM",
+    const data = await resend.emails.send({
+      from: 'onboarding@resend.dev', // OBLIGATORIO: Usa este correo de prueba por ahora
+      to: [email], // Solo llegará al correo con el que te registraste en Resend
+      subject: 'Recuperación de contraseña - CHAMBITAS.COM',
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #e37c2a; text-align: center;">CHAMBITAS.COM</h2>
-          <p>Haz clic abajo para cambiar tu contraseña:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${url}" style="background-color: #e37c2a; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Restablecer contraseña</a>
-          </div>
-          <p style="font-size: 0.8rem; color: #666;">Válido por 1 hora.</p>
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2 style="color: #e37c2a;">Recupera tu acceso</h2>
+            <p>Haz clic abajo para cambiar tu contraseña:</p>
+            <a href="${url}" style="background-color: #e37c2a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Restablecer contraseña</a>
         </div>
       `
     });
-    console.log("✅ Correo enviado con éxito.");
+
+    console.log("✅ Correo enviado vía Resend:", data);
   } catch (error) {
-    console.error("❌ Error FATAL enviando correo:", error);
-    throw error; // Esto hará que veas el error real en los logs
+    console.error("❌ Error enviando correo:", error);
+    throw error;
   }
 }
