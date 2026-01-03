@@ -3,19 +3,16 @@ import nodemailer from "nodemailer";
 // Configuración con credenciales directas para evitar errores de lectura del .env
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // false para puerto 587
+  port: 465, // Regresamos al puerto seguro SSL
+  secure: true, // IMPORTANTE: true para puerto 465
   auth: {
     user: "calzadillaemilio@gmail.com",
-    pass: "pyniauhuoymbsoww" // Tu clave de aplicación de 16 letras
+    pass: "pyniauhuoymbsoww" // Tu clave de aplicación
   },
   tls: {
     rejectUnauthorized: false
   },
-  // Tiempos de espera extendidos para la red de Render
-  connectionTimeout: 30000, 
-  greetingTimeout: 30000,
-  socketTimeout: 30000
+  connectionTimeout: 10000 // Bajamos a 10s para no esperar tanto si falla
 });
 
 export async function sendPasswordResetEmail(email, token) {
