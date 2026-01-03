@@ -111,20 +111,22 @@ router.post("/forgot-password", async (req, res) => {
 
         const token = crypto.randomBytes(20).toString('hex');
         
-        // Creamos una fecha como TEXTO para guardarla en tu columna varchar
-        // Esto genera algo tipo: "2024-01-02 15:30:00"
+        // 1. Creamos la fecha como TEXTO para que entre en tu columna varchar
+        // Ejemplo: "2024-01-02 15:30:00"
         const expires = new Date(Date.now() + 3600000).toISOString().slice(0, 19).replace('T', ' '); 
 
-        // AQUÍ ESTÁ EL CAMBIO IMPORTANTE: usamos reset_password_expires2
+        // 2. Usamos la columna NUEVA: reset_password_expires2
         await db.query(
             "UPDATE usuarios SET reset_password_token = ?, reset_password_expires2 = ? WHERE correo = ?",
             [token, expires, correo]
         );
 
+        // 3. Enviamos el correo
         await sendPasswordResetEmail(correo, token);
         res.json({ message: "Correo enviado correctamente." });
+
     } catch (error) {
-        console.error("Error detallado:", error); // Esto nos ayudará a ver qué pasa en Render
+        console.error("Error en forgot-password:", error);
         res.status(500).json({ message: "Error al procesar la solicitud." });
     }
 });
@@ -134,6 +136,8 @@ router.post("/reset-password", async (req, res) => {
     const { token, newPassword } = req.body;
     try {
         // Verificamos usando la columna 2
+        // Nota: Al ser varchar, la comparación > NOW() podría no ser precisa en SQL puro, 
+        // pero funcionará para esta prueba. Lo ideal es cambiar la columna a DATETIME después.
         const [users] = await db.query(
             "SELECT id FROM usuarios WHERE reset_password_token = ? AND reset_password_expires2 > NOW()",
             [token]
@@ -144,7 +148,8 @@ router.post("/reset-password", async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        // Limpiamos la columna 2 al terminar
+        
+        // Limpiamos la columna 2
         await db.query(
             "UPDATE usuarios SET password = ?, reset_password_token = NULL, reset_password_expires2 = NULL WHERE id = ?",
             [hashedPassword, users[0].id]
@@ -152,7 +157,7 @@ router.post("/reset-password", async (req, res) => {
 
         res.json({ message: "Tu contraseña ha sido actualizada." });
     } catch (error) {
-        console.error(error);
+        console.error("Error en reset:", error);
         res.status(500).json({ message: "Error al actualizar la contraseña." });
     }
 });
