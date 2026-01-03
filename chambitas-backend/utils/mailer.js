@@ -3,8 +3,8 @@ import nodemailer from "nodemailer";
 export const transporter = nodemailer.createTransport({
   service: 'gmail', // Usamos la configuración predefinida de Google
   auth: {
-    user: "calzadillaemilio@gmail.com", 
-    pass: "pyniauhuoymbsoww" // Tu clave de aplicación
+    user: "jecalzadilla@tecnomedia.com.mx", 
+    pass: "xkcf cdpa duhr ggst" // Tu clave de aplicación
   },
   tls: {
     rejectUnauthorized: false
